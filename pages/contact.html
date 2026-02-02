@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - LifeLine QR</title>
+
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/pages.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="../index.html" class="navbar-brand">
+                <span class="medical-icon">+</span>
+                LifeLine QR
+            </a>
+            <ul class="navbar-menu">
+                <li><a href="../index.html">Home</a></li>
+                <li><a href="./doctors-list.html">Doctors</a></li>
+                <li><a href="./contact.html">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <section class="features">
+        <div class="container">
+            <h1 class="text-center">Contact Us</h1>
+            <p class="text-center text-muted mb-4">Get in touch with our support team</p>
+
+            <div class="contact-grid">
+                <!-- Contact Information -->
+                <div class="contact-info">
+                    <h3 class="mb-3">Contact Information</h3>
+
+                    <div class="contact-item">
+                        <div class="contact-icon">📧</div>
+                        <div>
+                            <strong>Email</strong><br>
+                            support@lifelineqr.com
+                        </div>
+                    </div>
+
+                    <div class="contact-item">
+                        <div class="contact-icon">📞</div>
+                        <div>
+                            <strong>Phone</strong><br>
+                            +91 98765 43210
+                        </div>
+                    </div>
+
+                    <div class="contact-item">
+                        <div class="contact-icon">🏢</div>
+                        <div>
+                            <strong>Address</strong><br>
+                            Track My Academy<br>
+                            Tech Park, Bangalore, India
+                        </div>
+                    </div>
+
+                    <div class="contact-item">
+                        <div class="contact-icon">⏰</div>
+                        <div>
+                            <strong>Support Hours</strong><br>
+                            Monday - Friday: 9:00 AM - 6:00 PM<br>
+                            Saturday: 10:00 AM - 4:00 PM
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feedback Form -->
+                <div class="card">
+                    <h3 class="mb-3">Send us a Message</h3>
+
+                    <form id="contactForm">
+                        <div class="form-group">
+                            <label class="form-label required">Name</label>
+                            <input type="text" id="name" class="form-input" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label required">Email</label>
+                            <input type="email" id="email" class="form-input" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label required">Subject</label>
+                            <input type="text" id="subject" class="form-input" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label required">Message</label>
+                            <textarea id="message" class="form-textarea" required rows="6"></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Send Message</button>
+                    </form>
+
+                    <div id="successMessage" class="hidden">
+                        <div class="alert alert-success">
+                            <strong>Message Sent!</strong><br>
+                            Thank you for contacting us. We'll get back to you soon.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="../js/config.js"></script>
+    <script src="../js/storage.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/validation.js"></script>
+    <script src="../js/router.js"></script>
+    <script src="../js/main.js"></script>
+
+    <script>
+        const form = document.getElementById('contactForm');
+        Validation.setupLiveValidation(form);
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            if (!Validation.validateForm(form)) {
+                Utils.showAlert('Please fill all required fields', 'error');
+                return;
+            }
+
+            const feedbackData = {
+                name: document.getElementById('name').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                subject: document.getElementById('subject').value.trim(),
+                message: document.getElementById('message').value.trim(),
+                submittedAt: new Date().toISOString()
+            };
+
+            // In a real app, this would send to a server
+            // For now, we'll just store it locally
+            const feedback = Storage.add('lifeline_feedback', feedbackData);
+
+            if (feedback) {
+                form.classList.add('hidden');
+                document.getElementById('successMessage').classList.remove('hidden');
+
+                setTimeout(() => {
+                    form.reset();
+                    form.classList.remove('hidden');
+                    document.getElementById('successMessage').classList.add('hidden');
+                }, 5000);
+            }
+        });
+    </script>
+</body>
+
+</html>

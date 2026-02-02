@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Mode Selector - LifeLine QR</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #2C5F9E;
+            margin-bottom: 10px;
+        }
+
+        .mode-card {
+            border: 2px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .mode-card:hover {
+            border-color: #2C5F9E;
+            background: #E3F2FD;
+        }
+
+        .mode-card.active {
+            border-color: #28A745;
+            background: #d4edda;
+        }
+
+        .mode-card h3 {
+            margin-top: 0;
+            color: #2C5F9E;
+        }
+
+        .pros {
+            color: #28A745;
+        }
+
+        .cons {
+            color: #DC3545;
+        }
+
+        .btn {
+            background: #2C5F9E;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .btn:hover {
+            background: #1d4575;
+        }
+
+        .status {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            display: block;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🔧 Database Mode Selector</h1>
+        <p>Choose how you want to store data in LifeLine QR:</p>
+
+        <div class="mode-card" id="localStorage" onclick="selectMode('localStorage')">
+            <h3>📦 LocalStorage (Browser Storage)</h3>
+            <p><strong>Description:</strong> Data stored in your browser</p>
+            <ul class="pros">
+                <li>✅ No server required</li>
+                <li>✅ Works immediately</li>
+                <li>✅ No installation needed</li>
+                <li>✅ Simple and fast</li>
+            </ul>
+            <ul class="cons">
+                <li>❌ Data limited to one browser</li>
+                <li>❌ Clears when browser data is cleared</li>
+                <li>❌ 5-10MB storage limit</li>
+            </ul>
+            <p><strong>Best for:</strong> Learning, testing, personal use</p>
+        </div>
+
+        <div class="mode-card" id="mysql" onclick="selectMode('mysql')">
+            <h3>🗄️ MySQL Database (Real Database)</h3>
+            <p><strong>Description:</strong> Data stored in MySQL database on server</p>
+            <ul class="pros">
+                <li>✅ Real production database</li>
+                <li>✅ Data persists across browsers</li>
+                <li>✅ No storage limits</li>
+                <li>✅ Multi-user support</li>
+                <li>✅ Backup and export possible</li>
+            </ul>
+            <ul class="cons">
+                <li>❌ Requires XAMPP/WAMP installation</li>
+                <li>❌ Need to run local server</li>
+                <li>❌ More setup required</li>
+            </ul>
+            <p><strong>Best for:</strong> Production, deployment, multi-user</p>
+        </div>
+
+        <div id="status" class="status"></div>
+
+        <button class="btn" onclick="applyMode()">Apply Selected Mode</button>
+
+        <a href="index.html" class="btn"
+            style="display: inline-block; text-decoration: none; background: #6c757d; margin-left: 10px;">Go to App</a>
+    </div>
+
+    <script>
+        let selectedMode = localStorage.getItem('dbMode') || 'localStorage';
+
+        // Highlight current mode on page load
+        document.getElementById(selectedMode).classList.add('active');
+
+        function selectMode(mode) {
+            selectedMode = mode;
+            document.querySelectorAll('.mode-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            document.getElementById(mode).classList.add('active');
+        }
+
+        function applyMode() {
+            const status = document.getElementById('status');
+
+            // Save selection
+            localStorage.setItem('dbMode', selectedMode);
+
+            if (selectedMode === 'mysql') {
+                status.className = 'status success';
+                status.innerHTML = `
+                    <strong>✅ MySQL Mode Selected!</strong><br><br>
+                    <strong>Next Steps:</strong><br>
+                    1. Install XAMPP/WAMP (if not already)<br>
+                    2. Move this folder to XAMPP's htdocs directory<br>
+                    3. Follow instructions in <a href="DATABASE_SETUP.md" target="_blank">DATABASE_SETUP.md</a><br>
+                    4. Create database using <a href="database/schema.sql" target="_blank">schema.sql</a><br>
+                    5. Update API_BASE_URL in js/storage-api.js<br>
+                    6. Access via http://localhost/basic/index.html
+                `;
+            } else {
+                status.className = 'status success';
+                status.innerHTML = `
+                    <strong>✅ LocalStorage Mode Selected!</strong><br><br>
+                    You can use the app immediately. Just click "Go to App" below.<br>
+                    Data will be stored in your browser's LocalStorage.
+                `;
+            }
+
+            console.log('Database mode set to:', selectedMode);
+        }
+    </script>
+</body>
+
+</html>

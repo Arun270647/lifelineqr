@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Registration - LifeLine QR</title>
+
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/pages.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="../index.html" class="navbar-brand">
+                <span class="medical-icon">+</span>
+                LifeLine QR
+            </a>
+        </div>
+    </nav>
+
+    <section class="auth-container">
+        <div class="container-sm">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <h2>Doctor Registration</h2>
+                    <p>Register to access patient medical information</p>
+                </div>
+
+                <form id="doctorRegForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label required">Full Name</label>
+                            <input type="text" id="name" class="form-input" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label required">Age</label>
+                            <input type="number" id="age" class="form-input" required data-validation="age">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label required">Email</label>
+                            <input type="email" id="email" class="form-input" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label required">Password</label>
+                            <input type="password" id="password" class="form-input" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label required">Specialization</label>
+                            <select id="specialization" class="form-select" required>
+                                <option value="">Select Specialization</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label required">Years of Experience</label>
+                            <input type="number" id="experience" class="form-input" required min="0">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label required">Hospital/Clinic</label>
+                            <input type="text" id="hospital" class="form-input" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label required">Contact Number</label>
+                            <input type="tel" id="contactNumber" class="form-input" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label required">Working Hours</label>
+                        <input type="text" id="workingHours" class="form-input" required
+                            placeholder="e.g., 9:00 AM - 5:00 PM">
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary"
+                            onclick="window.location.href='./role-selection.html'">Back</button>
+                        <button type="submit" class="btn btn-success">Register</button>
+                    </div>
+                </form>
+
+                <div class="form-link">
+                    Already have an account? <a href="./login.html">Login here</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="../js/config.js"></script>
+    <script src="../js/storage.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/validation.js"></script>
+    <script src="../js/router.js"></script>
+
+    <script>
+        // Populate specializations
+        const specializationSelect = document.getElementById('specialization');
+        CONFIG.SPECIALIZATIONS.forEach(spec => {
+            const option = document.createElement('option');
+            option.value = spec;
+            option.textContent = spec;
+            specializationSelect.appendChild(option);
+        });
+
+        // Setup form validation
+        const form = document.getElementById('doctorRegForm');
+        Validation.setupLiveValidation(form);
+
+        // Handle form submission
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            if (!Validation.validateForm(form)) {
+                Utils.showAlert('Please fix the errors in the form', 'error');
+                return;
+            }
+
+            const userData = {
+                role: CONFIG.ROLES.DOCTOR,
+                name: document.getElementById('name').value.trim(),
+                age: parseInt(document.getElementById('age').value),
+                email: document.getElementById('email').value.trim().toLowerCase(),
+                password: document.getElementById('password').value,
+                specialization: document.getElementById('specialization').value,
+                experience: parseInt(document.getElementById('experience').value),
+                hospital: document.getElementById('hospital').value.trim(),
+                contactNumber: document.getElementById('contactNumber').value.trim(),
+                workingHours: document.getElementById('workingHours').value.trim()
+            };
+
+            const result = Auth.register(userData);
+
+            if (result.success) {
+                Utils.showAlert('Registration successful! Redirecting to login...', 'success');
+                setTimeout(() => {
+                    window.location.href = './login.html';
+                }, 2000);
+            } else {
+                Utils.showAlert(result.error, 'error');
+            }
+        });
+    </script>
+</body>
+
+</html>

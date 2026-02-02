@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Registration Type - LifeLine QR</title>
+
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/pages.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="../index.html" class="navbar-brand">
+                <span class="medical-icon">+</span>
+                LifeLine QR
+            </a>
+        </div>
+    </nav>
+
+    <section class="role-selection">
+        <div class="container">
+            <h1 class="text-center mb-4">Choose Your Registration Type</h1>
+            <div class="role-cards">
+                <div class="role-card" onclick="window.location.href='./register-patient.html'">
+                    <div class="role-icon">🏥</div>
+                    <h2>Register as Patient</h2>
+                    <p>Get your unique QR code and store your medical information for emergency access.</p>
+                    <button class="btn btn-primary btn-lg mt-3">Continue as Patient</button>
+                </div>
+
+                <div class="role-card" onclick="window.location.href='./register-doctor.html'">
+                    <div class="role-icon">👨‍⚕️</div>
+                    <h2>Register as Doctor</h2>
+                    <p>Access patient medical information through QR code scans and help in emergencies.</p>
+                    <button class="btn btn-success btn-lg mt-3">Continue as Doctor</button>
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <p>Already have an account? <a href="./login.html">Login here</a></p>
+            </div>
+        </div>
+    </section>
+
+    <script src="../js/config.js"></script>
+    <script src="../js/storage.js"></script>
+    <script src="../js/auth.js"></script>
+</body>
+
+</html>

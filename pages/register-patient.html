@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Registration - LifeLine QR</title>
+
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/pages.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="../index.html" class="navbar-brand">
+                <span class="medical-icon">+</span>
+                LifeLine QR
+            </a>
+        </div>
+    </nav>
+
+    <section class="auth-container">
+        <div class="container-sm">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <h2>Patient Registration</h2>
+                    <p>Fill in your medical information to get your QR code</p>
+                </div>
+
+                <form id="patientRegForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label required">Full Name</label>
+                            <input type="text" id="name" class="form-input" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label required">Age</label>
+                            <input type="number" id="age" class="form-input" required data-validation="age">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label required">Email</label>
+                            <input type="email" id="email" class="form-input" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label required">Password</label>
+                            <input type="password" id="password" class="form-input" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label required">Blood Group</label>
+                            <select id="bloodGroup" class="form-select" required>
+                                <option value="">Select Blood Group</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label required">Emergency Contact</label>
+                            <input type="tel" id="emergencyContacts" class="form-input" required
+                                placeholder="10-digit mobile number">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Allergies</label>
+                        <textarea id="allergies" class="form-textarea"
+                            placeholder="List any known allergies (e.g., Penicillin, Peanuts)"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Medical Conditions</label>
+                        <textarea id="medicalConditions" class="form-textarea"
+                            placeholder="Existing medical conditions (e.g., Diabetes, Hypertension)"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Regular Medications</label>
+                        <textarea id="regularMedications" class="form-textarea"
+                            placeholder="Medications you take regularly"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Address</label>
+                        <textarea id="address" class="form-textarea" placeholder="Your complete address"></textarea>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary"
+                            onclick="window.location.href='./role-selection.html'">Back</button>
+                        <button type="submit" class="btn btn-primary">Register</button>
+                    </div>
+                </form>
+
+                <div class="form-link">
+                    Already have an account? <a href="./login.html">Login here</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="../js/config.js"></script>
+    <script src="../js/storage.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/validation.js"></script>
+    <script src="../js/router.js"></script>
+
+    <script>
+        // Populate blood groups
+        const bloodGroupSelect = document.getElementById('bloodGroup');
+        CONFIG.BLOOD_GROUPS.forEach(group => {
+            const option = document.createElement('option');
+            option.value = group;
+            option.textContent = group;
+            bloodGroupSelect.appendChild(option);
+        });
+
+        // Setup form validation
+        const form = document.getElementById('patientRegForm');
+        Validation.setupLiveValidation(form);
+
+        // Handle form submission
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            if (!Validation.validateForm(form)) {
+                Utils.showAlert('Please fix the errors in the form', 'error');
+                return;
+            }
+
+            const userData = {
+                role: CONFIG.ROLES.PATIENT,
+                name: document.getElementById('name').value.trim(),
+                age: parseInt(document.getElementById('age').value),
+                email: document.getElementById('email').value.trim().toLowerCase(),
+                password: document.getElementById('password').value,
+                bloodGroup: document.getElementById('bloodGroup').value,
+                emergencyContacts: document.getElementById('emergencyContacts').value.trim(),
+                allergies: document.getElementById('allergies').value.trim(),
+                medicalConditions: document.getElementById('medicalConditions').value.trim(),
+                regularMedications: document.getElementById('regularMedications').value.trim(),
+                address: document.getElementById('address').value.trim()
+            };
+
+            const result = Auth.register(userData);
+
+            if (result.success) {
+                Utils.showAlert('Registration successful! Redirecting to login...', 'success');
+                setTimeout(() => {
+                    window.location.href = './login.html';
+                }, 2000);
+            } else {
+                Utils.showAlert(result.error, 'error');
+            }
+        });
+    </script>
+</body>
+
+</html>

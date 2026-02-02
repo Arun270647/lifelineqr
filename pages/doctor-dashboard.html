@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Dashboard - LifeLine QR</title>
+
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/pages.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="../index.html" class="navbar-brand">
+                <span class="medical-icon">+</span>
+                LifeLine QR
+            </a>
+            <ul class="navbar-menu">
+                <li><a href="./doctor-dashboard.html">Dashboard</a></li>
+                <li><a href="./doctors-list.html">Doctors List</a></li>
+                <li><button class="btn btn-sm btn-danger" onclick="handleLogout()">Logout</button></li>
+            </ul>
+        </div>
+    </nav>
+
+    <section class="dashboard">
+        <div class="container">
+            <div class="dashboard-header">
+                <div>
+                    <h1 id="userGreeting">Doctor Dashboard</h1>
+                    <p class="text-muted">Access patient medical information</p>
+                </div>
+            </div>
+
+            <!-- QR Lookup -->
+            <div class="card">
+                <h3>Patient Lookup</h3>
+                <p>Enter the patient's QR code ID to view their medical information</p>
+                <div class="form-group">
+                    <label class="form-label">QR Code ID</label>
+                    <input type="text" id="qrInput" class="form-input" placeholder="Enter or paste QR code ID">
+                </div>
+                <button class="btn btn-primary" onclick="lookupPatient()">Search Patient</button>
+            </div>
+
+            <!-- Patient Info Display -->
+            <div id="patientInfoCard" class="card hidden">
+                <div class="card-header">
+                    <h3>Patient Information</h3>
+                    <button class="btn btn-sm btn-secondary" onclick="clearPatientInfo()">Clear</button>
+                </div>
+                <div id="patientInfo"></div>
+
+                <!-- Medical Records -->
+                <div id="medicalRecordsSection" class="mt-4 hidden">
+                    <h4 class="mb-3">Medical Documents</h4>
+                    <ul id="medicalRecordsList" class="document-list"></ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="../js/config.js"></script>
+    <script src="../js/storage.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/qr-handler.js"></script>
+    <script src="../js/router.js"></script>
+    <script src="../js/main.js"></script>
+
+    <script>
+        // Require authentication
+        if (!Auth.requireAuth() || !Auth.isRole(CONFIG.ROLES.DOCTOR)) {
+            window.location.href = './login.html';
+        }
+
+        const currentUser = Auth.getCurrentUser();
+
+        // Lookup patient by QR code
+        function lookupPatient() {
+            const qrCode = document.getElementById('qrInput').value.trim();
+
+            if (!qrCode) {
+                Utils.showAlert('Please enter a QR code ID', 'error');
+                return;
+            }
+
+            const result = QRHandler.getPatientData(qrCode, true);
+
+            if (!result.success) {
+                Utils.showAlert(result.error, 'error');
+                clearPatientInfo();
+                return;
+            }
+
+            displayPatientInfo(result.data, result.medicalRecords);
+        }
+
+        // Display patient information
+        function displayPatientInfo(patient, medicalRecords) {
+            const infoCard = document.getElementById('patientInfoCard');
+            const infoDiv = document.getElementById('patientInfo');
+
+            infoDiv.innerHTML = formatPatientInfo(patient);
+            infoCard.classList.remove('hidden');
+
+            // Display medical records
+            if (medicalRecords && medicalRecords.length > 0) {
+                displayMedicalRecords(medicalRecords);
+            } else {
+                const recordsSection = document.getElementById('medicalRecordsSection');
+                recordsSection.innerHTML = '<p class="text-muted">No medical documents uploaded</p>';
+                recordsSection.classList.remove('hidden');
+            }
+        }
+
+        // Display medical records
+        function displayMedicalRecords(records) {
+            const recordsSection = document.getElementById('medicalRecordsSection');
+            const recordsList = document.getElementById('medicalRecordsList');
+
+            recordsList.innerHTML = records.map(record => `
+                <li class="document-item">
+                    <div class="document-info">
+                        <div class="document-name">${record.filename}</div>
+                        <div class="document-desc">${record.description || 'No description'}</div>
+                        <small class="text-muted">Uploaded: ${Utils.formatDate(record.createdAt)}</small>
+                    </div>
+                    <div class="document-actions">
+                        <button class="btn btn-sm btn-primary" onclick="viewDocument('${record.id}')">View/Download</button>
+                    </div>
+                </li>
+            `).join('');
+
+            recordsSection.classList.remove('hidden');
+        }
+
+        // View document
+        function viewDocument(recordId) {
+            const record = Storage.getById(CONFIG.STORAGE_KEYS.MEDICAL_RECORDS, recordId);
+            if (!record) return;
+
+            const link = document.createElement('a');
+            link.href = record.fileData;
+            link.download = record.filename;
+            link.target = '_blank';
+            link.click();
+        }
+
+        // Clear patient info
+        function clearPatientInfo() {
+            document.getElementById('qrInput').value = '';
+            document.getElementById('patientInfoCard').classList.add('hidden');
+            document.getElementById('patientInfo').innerHTML = '';
+            document.getElementById('medicalRecordsSection').classList.add('hidden');
+        }
+
+        // Allow Enter key to search
+        document.getElementById('qrInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                lookupPatient();
+            }
+        });
+    </script>
+</body>
+
+</html>

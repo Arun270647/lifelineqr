@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Card Merchandise - LifeLine QR</title>
+
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/pages.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="../index.html" class="navbar-brand">
+                <span class="medical-icon">+</span>
+                LifeLine QR
+            </a>
+            <ul class="navbar-menu">
+                <li><a href="../index.html">Home</a></li>
+                <li><a href="./merchandise.html">Merchandise</a></li>
+                <li><a href="./contact.html">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <section class="features">
+        <div class="container">
+            <h1 class="text-center">QR Medical Cards</h1>
+            <p class="text-center text-muted mb-4">Get your medical QR code printed on a durable card</p>
+
+            <div class="product-grid">
+                <div class="product-card">
+                    <div class="product-image">
+                        💳
+                    </div>
+                    <div class="product-body">
+                        <h3 class="product-title">Standard QR Medical Card</h3>
+                        <div class="product-price">₹299</div>
+                        <p class="product-description">
+                            Durable plastic card with your medical QR code. Wallet-sized and water-resistant.
+                        </p>
+                        <ul class="mb-3">
+                            <li>Credit card size (85mm x 54mm)</li>
+                            <li>PVC plastic material</li>
+                            <li>High-quality QR code printing</li>
+                            <li>Your name and blood group printed</li>
+                            <li>Free delivery</li>
+                        </ul>
+                        <button class="btn btn-primary" onclick="orderCard('standard')">Order Now</button>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="product-image" style="background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);">
+                        👑
+                    </div>
+                    <div class="product-body">
+                        <h3 class="product-title">Premium QR Medical Card</h3>
+                        <div class="product-price">₹599</div>
+                        <p class="product-description">
+                            Premium metal card with your medical QR code. Elegant and long-lasting.
+                        </p>
+                        <ul class="mb-3">
+                            <li>Credit card size (85mm x 54mm)</li>
+                            <li>Stainless steel material</li>
+                            <li>Laser-engraved QR code</li>
+                            <li>Personalized engraving</li>
+                            <li>Premium gift box included</li>
+                            <li>Free express delivery</li>
+                        </ul>
+                        <button class="btn btn-success" onclick="orderCard('premium')">Order Premium</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Order Modal -->
+    <div id="orderModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Order QR Medical Card</h3>
+                <button class="modal-close" onclick="closeOrderModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="loginRequired" class="alert alert-warning">
+                    <strong>Login Required</strong><br>
+                    You need to <a href="./login.html">login as a patient</a> to order a QR card.
+                </div>
+
+                <form id="orderForm" class="hidden">
+                    <div class="alert alert-info">
+                        <strong>Product:</strong> <span id="productName"></span><br>
+                        <strong>Price:</strong> <span id="productPrice"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label required">Full Name</label>
+                        <input type="text" id="orderName" class="form-input" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label required">Phone Number</label>
+                        <input type="tel" id="orderPhone" class="form-input" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label required">Delivery Address</label>
+                        <textarea id="orderAddress" class="form-textarea" required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label required">Quantity</label>
+                        <input type="number" id="orderQuantity" class="form-input" value="1" min="1" max="10" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Place Order</button>
+                </form>
+
+                <div id="orderSuccess" class="hidden">
+                    <div class="alert alert-success">
+                        <strong>Order Placed Successfully!</strong><br>
+                        Order ID: <strong id="orderId"></strong><br>
+                        We'll contact you shortly for payment and delivery details.
+                    </div>
+                    <button class="btn btn-primary" onclick="closeOrderModal()">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/config.js"></script>
+    <script src="../js/storage.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/validation.js"></script>
+    <script src="../js/qr-handler.js"></script>
+    <script src="../js/router.js"></script>
+    <script src="../js/main.js"></script>
+
+    <script>
+        let selectedProduct = null;
+
+        function orderCard(type) {
+            selectedProduct = type;
+            const modal = document.getElementById('orderModal');
+            const loginRequired = document.getElementById('loginRequired');
+            const orderForm = document.getElementById('orderForm');
+            const orderSuccess = document.getElementById('orderSuccess');
+
+            // Reset modal
+            orderSuccess.classList.add('hidden');
+
+            // Check if user is logged in as patient
+            if (!Auth.isLoggedIn() || !Auth.isRole(CONFIG.ROLES.PATIENT)) {
+                loginRequired.classList.remove('hidden');
+                orderForm.classList.add('hidden');
+            } else {
+                loginRequired.classList.add('hidden');
+                orderForm.classList.remove('hidden');
+
+                // Pre-fill form
+                const user = Auth.getCurrentUser();
+                document.getElementById('orderName').value = user.name || '';
+                document.getElementById('orderAddress').value = user.address || '';
+                document.getElementById('orderPhone').value = user.emergencyContacts || '';
+            }
+
+            // Set product details
+            const productName = type === 'premium' ? 'Premium QR Medical Card' : 'Standard QR Medical Card';
+            const productPrice = type === 'premium' ? '₹599' : '₹299';
+
+            document.getElementById('productName').textContent = productName;
+            document.getElementById('productPrice').textContent = productPrice;
+
+            modal.classList.add('active');
+        }
+
+        function closeOrderModal() {
+            document.getElementById('orderModal').classList.remove('active');
+            document.getElementById('orderForm').reset();
+        }
+
+        // Handle order submission
+        document.getElementById('orderForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            if (!Validation.validateForm(this)) {
+                Utils.showAlert('Please fill all required fields', 'error');
+                return;
+            }
+
+            const user = Auth.getCurrentUser();
+            const qrMapping = QRStorage.getQRByPatient(user.id);
+
+            const orderData = {
+                userId: user.id,
+                productType: selectedProduct,
+                productName: document.getElementById('productName').textContent,
+                price: document.getElementById('productPrice').textContent,
+                customerName: document.getElementById('orderName').value.trim(),
+                phone: document.getElementById('orderPhone').value.trim(),
+                address: document.getElementById('orderAddress').value.trim(),
+                quantity: parseInt(document.getElementById('orderQuantity').value),
+                qrCode: qrMapping ? qrMapping.qrCode : null,
+                status: 'pending',
+                orderDate: new Date().toISOString()
+            };
+
+            const order = OrderStorage.createOrder(orderData);
+
+            if (order) {
+                document.getElementById('orderForm').classList.add('hidden');
+                document.getElementById('orderSuccess').classList.remove('hidden');
+                document.getElementById('orderId').textContent = order.id.substring(0, 8).toUpperCase();
+            } else {
+                Utils.showAlert('Failed to place order', 'error');
+            }
+        });
+    </script>
+</body>
+
+</html>
