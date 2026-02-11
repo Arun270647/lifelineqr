@@ -98,6 +98,13 @@
                         <textarea id="address" class="form-textarea" placeholder="Your complete address"></textarea>
                     </div>
 
+                    <div class="form-group">
+                        <label class="form-label">Upload Medical Document (Optional)</label>
+                        <input type="file" id="fileInput" class="form-input" accept=".pdf,.jpg,.jpeg,.png">
+                        <input type="text" id="fileDescription" class="form-input mt-2"
+                            placeholder="Document Description (e.g., Blood Test)">
+                    </div>
+
                     <div class="form-actions">
                         <button type="button" class="btn btn-secondary"
                             onclick="window.location.href='./role-selection.html'">Back</button>
@@ -132,6 +139,14 @@
         const form = document.getElementById('patientRegForm');
         Validation.setupLiveValidation(form);
 
+        // Helper to convert file to Base64
+        const fileToBase64 = (file) => new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        });
+
         // Handle form submission — POST to Python backend
         form.addEventListener('submit', async function (e) {
             e.preventDefault();
@@ -155,6 +170,7 @@
             };
 
             try {
+                // 1. Register Patient
                 const res = await fetch('http://localhost:5000/api/register/patient', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -163,6 +179,26 @@
                 const result = await res.json();
 
                 if (result.success) {
+                    const patientId = result.patient_id;
+                    const fileInput = document.getElementById('fileInput');
+
+                    // 2. Upload Document (if selected)
+                    if (fileInput.files.length > 0) {
+                        const file = fileInput.files[0];
+                        const description = document.getElementById('fileDescription').value.trim();
+                        const base64 = await fileToBase64(file);
+
+                        await fetch(`http://localhost:5000/api/patient/${patientId}/documents`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                filename: file.name,
+                                fileData: base64, // Send full DataURL
+                                description: description
+                            })
+                        });
+                    }
+
                     Utils.showAlert('Registration successful! Redirecting to login...', 'success');
                     setTimeout(() => {
                         window.location.href = './login.html';

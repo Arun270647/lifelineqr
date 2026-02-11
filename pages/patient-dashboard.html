@@ -60,19 +60,7 @@
                 <!-- Medical Documents -->
                 <div class="dashboard-section" style="grid-column: 1 / -1;">
                     <h3>Medical Documents</h3>
-                    <div class="form-group">
-                        <label class="form-label">Upload Medical Document</label>
-                        <input type="file" id="fileInput" class="form-input" accept=".pdf,.jpg,.jpeg,.png">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Document Description</label>
-                        <input type="text" id="fileDescription" class="form-input"
-                            placeholder="e.g., Blood Test Report, X-Ray">
-                    </div>
-                    <button class="btn btn-primary" onclick="uploadDocument()">Upload Document</button>
-
                     <div class="mt-4">
-                        <h4>Uploaded Documents</h4>
                         <ul id="documentList" class="document-list"></ul>
                     </div>
                 </div>
@@ -198,9 +186,87 @@
                     height: 150
                 });
 
+                // Load documents
+                loadDocuments();
+
             } catch (err) {
                 console.error(err);
                 Utils.showAlert('Server error loading profile', 'error');
+            }
+        }
+
+        // Load documents from API
+        async function loadDocuments() {
+            try {
+                const res = await fetch(`http://localhost:5000/api/patient/${currentUser.id}/documents`);
+                const data = await res.json();
+                const docList = document.getElementById('documentList');
+
+                if (!data.success || data.documents.length === 0) {
+                    docList.innerHTML = '<li class="empty-state"><p>No documents uploaded yet</p></li>';
+                    return;
+                }
+
+                docList.innerHTML = data.documents.map(record => `
+                    <li class="document-item">
+                        <div class="document-info">
+                            <div class="document-name">${record.filename}</div>
+                            <div class="document-desc">${record.description || 'No description'}</div>
+                            <small class="text-muted">Uploaded: ${Utils.formatDate(record.uploaded_at)}</small>
+                        </div>
+                        <div class="document-actions">
+                            <button class="btn btn-sm btn-primary" onclick="viewDocument('${record.id}')">View</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteDocument('${record.id}')">Delete</button>
+                        </div>
+                    </li>
+                `).join('');
+            } catch (err) {
+                console.error(err);
+                document.getElementById('documentList').innerHTML = '<li class="text-danger">Failed to load documents</li>';
+            }
+        }
+
+        // View document - fetch full content only when requested
+        async function viewDocument(docId) {
+            try {
+                const res = await fetch(`http://localhost:5000/api/document/${docId}`);
+                const data = await res.json();
+
+                if (data.success) {
+                    const record = data.document;
+                    const link = document.createElement('a');
+                    link.href = record.file_data; // This is the base64 string
+                    link.download = record.filename;
+                    link.target = '_blank';
+                    link.click();
+                } else {
+                    Utils.showAlert('Failed to load document', 'error');
+                }
+            } catch (err) {
+                console.error(err);
+                Utils.showAlert('Server error', 'error');
+            }
+        }
+
+        // Delete document via API
+        async function deleteDocument(docId) {
+            if (confirm('Are you sure you want to delete this document?')) {
+                try {
+                    const res = await fetch(`http://localhost:5000/api/document/${docId}`, {
+                        method: 'DELETE'
+                    });
+                    const data = await res.json();
+
+                    if (data.success) {
+                        Utils.showAlert('Document deleted', 'success');
+                        loadDocuments();
+                    } else {
+                        Utils.showAlert('Failed to delete document', 'error');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    Utils.showAlert('Server error', 'error');
+                }
             }
         }
 

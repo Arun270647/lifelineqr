@@ -101,16 +101,24 @@
             const patientId = match[1];
 
             try {
-                const res = await fetch(`http://localhost:5000/api/patient/${patientId}`);
-                const data = await res.json();
+                // Fetch patient and documents in parallel
+                const [patientRes, docsRes] = await Promise.all([
+                    fetch(`http://localhost:5000/api/patient/${patientId}`),
+                    fetch(`http://localhost:5000/api/patient/${patientId}/documents`)
+                ]);
 
-                if (!data.success) {
+                const patientData = await patientRes.json();
+                const docsData = await docsRes.json();
+
+                if (!patientData.success) {
                     Utils.showAlert('Patient not found', 'error');
                     clearPatientInfo();
                     return;
                 }
 
-                displayPatientInfo(data.patient);
+                displayPatientInfo(patientData.patient);
+                displayMedicalRecords(docsData.documents || []);
+
             } catch (err) {
                 Utils.showAlert('Server error. Make sure the backend is running.', 'error');
                 console.error(err);
@@ -160,11 +168,55 @@
             `;
 
             infoCard.classList.remove('hidden');
+        }
 
-            // Hide medical records section (not implemented via API yet)
+        // Display medical records
+        function displayMedicalRecords(records) {
             const recordsSection = document.getElementById('medicalRecordsSection');
-            recordsSection.innerHTML = '<p class="text-muted">No medical documents uploaded</p>';
+            const recordsList = document.getElementById('medicalRecordsList');
+
+            if (!records || records.length === 0) {
+                recordsSection.innerHTML = '<p class="text-muted">No medical documents uploaded</p>';
+            } else {
+                recordsSection.innerHTML = '<h4 class="mb-3">Medical Documents</h4><ul id="medicalRecordsList" class="document-list"></ul>';
+                const list = document.getElementById('medicalRecordsList');
+
+                list.innerHTML = records.map(record => `
+                    <li class="document-item">
+                        <div class="document-info">
+                            <div class="document-name">${record.filename}</div>
+                            <div class="document-desc">${record.description || 'No description'}</div>
+                            <small class="text-muted">Uploaded: ${Utils.formatDate(record.uploaded_at)}</small>
+                        </div>
+                        <div class="document-actions">
+                            <button class="btn btn-sm btn-primary" onclick="viewDocument('${record.id}')">View/Download</button>
+                        </div>
+                    </li>
+                `).join('');
+            }
             recordsSection.classList.remove('hidden');
+        }
+
+        // View document - fetch full content only when requested
+        async function viewDocument(docId) {
+            try {
+                const res = await fetch(`http://localhost:5000/api/document/${docId}`);
+                const data = await res.json();
+
+                if (data.success) {
+                    const record = data.document;
+                    const link = document.createElement('a');
+                    link.href = record.file_data;
+                    link.download = record.filename;
+                    link.target = '_blank';
+                    link.click();
+                } else {
+                    Utils.showAlert('Failed to load document', 'error');
+                }
+            } catch (err) {
+                console.error(err);
+                Utils.showAlert('Server error', 'error');
+            }
         }
 
         // Clear patient info

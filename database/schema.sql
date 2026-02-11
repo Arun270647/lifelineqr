@@ -97,12 +97,3 @@ CREATE TABLE IF NOT EXISTS feedback (
     submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Sample data (optional)
--- Uncomment to insert sample doctors for testing
-
-/*
-INSERT INTO users (id, role, name, age, email, password, specialization, experience, hospital, contact_number, working_hours)
-VALUES 
-(UUID(), 'doctor', 'Dr. Suresh Reddy', 45, 'suresh@demo.com', 'RHIuU3VyZXNoMTIzNDU2TGlmZUxpbmUgUVI=', 'Cardiologist', 15, 'Apollo Hospital', '9876000001', '9:00 AM - 5:00 PM'),
-(UUID(), 'doctor', 'Dr. Anjali Menon', 38, 'anjali@demo.com', 'RHIuQW5qYWxpMTIzNDU2TGlmZUxpbmUgUVI=', 'General Physician', 12, 'Fortis Hospital', '9876000002', '10:00 AM - 6:00 PM');
-*/

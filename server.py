@@ -295,6 +295,108 @@ def login():
         return jsonify({'success': False, 'error': str(err)}), 500
 
 
+# ── Medical Documents endpoints ──────────────────────────────────────────────
+
+@app.route('/api/patient/<int:patient_id>/documents', methods=['POST'])
+def upload_document(patient_id):
+    """Upload a medical document for a patient."""
+    data = request.get_json()
+
+    filename = data.get('filename', '')
+    file_data = data.get('fileData', '')
+    description = data.get('description', 'Medical Document')
+
+    if not filename or not file_data:
+        return jsonify({'success': False, 'error': 'filename and fileData are required'}), 400
+
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+
+        sql = '''INSERT INTO medical_documents
+                 (patient_id, filename, file_data, description)
+                 VALUES (%s, %s, %s, %s)'''
+
+        cursor.execute(sql, (patient_id, filename, file_data, description))
+        conn.commit()
+
+        doc_id = cursor.lastrowid
+        cursor.close()
+        conn.close()
+
+        return jsonify({
+            'success': True,
+            'message': 'Document uploaded successfully',
+            'document_id': doc_id
+        }), 201
+
+    except mysql.connector.Error as err:
+        return jsonify({'success': False, 'error': str(err)}), 500
+
+
+@app.route('/api/patient/<int:patient_id>/documents', methods=['GET'])
+def get_documents(patient_id):
+    """Get all medical documents for a patient."""
+    try:
+        conn = get_db()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute('SELECT id, filename, description, uploaded_at FROM medical_documents '
+                       'WHERE patient_id = %s ORDER BY uploaded_at DESC', (patient_id,))
+        docs = cursor.fetchall()
+
+        for d in docs:
+            if d.get('uploaded_at'):
+                d['uploaded_at'] = d['uploaded_at'].isoformat()
+
+        cursor.close()
+        conn.close()
+
+        return jsonify({'success': True, 'documents': docs})
+
+    except mysql.connector.Error as err:
+        return jsonify({'success': False, 'error': str(err)}), 500
+
+
+@app.route('/api/document/<int:doc_id>', methods=['GET'])
+def get_document(doc_id):
+    """Get a single document with its file data."""
+    try:
+        conn = get_db()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute('SELECT * FROM medical_documents WHERE id = %s', (doc_id,))
+        doc = cursor.fetchone()
+        cursor.close()
+        conn.close()
+
+        if not doc:
+            return jsonify({'success': False, 'error': 'Document not found'}), 404
+
+        if doc.get('uploaded_at'):
+            doc['uploaded_at'] = doc['uploaded_at'].isoformat()
+
+        return jsonify({'success': True, 'document': doc})
+
+    except mysql.connector.Error as err:
+        return jsonify({'success': False, 'error': str(err)}), 500
+
+
+@app.route('/api/document/<int:doc_id>', methods=['DELETE'])
+def delete_document(doc_id):
+    """Delete a medical document."""
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM medical_documents WHERE id = %s', (doc_id,))
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return jsonify({'success': True, 'message': 'Document deleted'})
+
+    except mysql.connector.Error as err:
+        return jsonify({'success': False, 'error': str(err)}), 500
+
+
 # ── Run ──────────────────────────────────────────────────────────────────────
 
 if __name__ == '__main__':
