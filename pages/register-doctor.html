@@ -50,7 +50,13 @@
 
                         <div class="form-group">
                             <label class="form-label required">Password</label>
-                            <input type="password" id="password" class="form-input" required>
+                            <div style="position:relative;">
+                                <input type="password" id="password" class="form-input" required
+                                    style="padding-right:40px;">
+                                <span id="togglePassword"
+                                    onclick="const p=document.getElementById('password');const isHidden=p.type==='password';p.type=isHidden?'text':'password';this.textContent=isHidden?'🙈':'👁️';"
+                                    style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:18px;user-select:none;">👁️</span>
+                            </div>
                         </div>
                     </div>
 
@@ -120,8 +126,8 @@
         const form = document.getElementById('doctorRegForm');
         Validation.setupLiveValidation(form);
 
-        // Handle form submission
-        form.addEventListener('submit', function (e) {
+        // Handle form submission — POST to Python backend
+        form.addEventListener('submit', async function (e) {
             e.preventDefault();
 
             if (!Validation.validateForm(form)) {
@@ -130,7 +136,6 @@
             }
 
             const userData = {
-                role: CONFIG.ROLES.DOCTOR,
                 name: document.getElementById('name').value.trim(),
                 age: parseInt(document.getElementById('age').value),
                 email: document.getElementById('email').value.trim().toLowerCase(),
@@ -142,15 +147,25 @@
                 workingHours: document.getElementById('workingHours').value.trim()
             };
 
-            const result = Auth.register(userData);
+            try {
+                const res = await fetch('http://localhost:5000/api/register/doctor', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userData)
+                });
+                const result = await res.json();
 
-            if (result.success) {
-                Utils.showAlert('Registration successful! Redirecting to login...', 'success');
-                setTimeout(() => {
-                    window.location.href = './login.html';
-                }, 2000);
-            } else {
-                Utils.showAlert(result.error, 'error');
+                if (result.success) {
+                    Utils.showAlert('Registration successful! Redirecting to login...', 'success');
+                    setTimeout(() => {
+                        window.location.href = './login.html';
+                    }, 2000);
+                } else {
+                    Utils.showAlert(result.error, 'error');
+                }
+            } catch (err) {
+                Utils.showAlert('Server error. Make sure the Python backend is running.', 'error');
+                console.error(err);
             }
         });
     </script>

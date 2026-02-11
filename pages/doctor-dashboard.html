@@ -71,15 +71,18 @@
     <script src="../js/main.js"></script>
 
     <script>
-        // Require authentication
-        if (!Auth.requireAuth() || !Auth.isRole(CONFIG.ROLES.DOCTOR)) {
-            window.location.href = './login.html';
+        // Get current user from session
+        const currentUser = JSON.parse(sessionStorage.getItem(CONFIG.STORAGE_KEYS.CURRENT_USER));
+
+        if (!currentUser || currentUser.role !== 'doctor') {
+            window.location.href = '/pages/login.html';
         }
 
-        const currentUser = Auth.getCurrentUser();
+        // Set greeting
+        document.getElementById('userGreeting').textContent = `Welcome back, ${currentUser.name}!`;
 
-        // Lookup patient by QR code
-        function lookupPatient() {
+        // Lookup patient by QR code via API
+        async function lookupPatient() {
             const qrCode = document.getElementById('qrInput').value.trim();
 
             if (!qrCode) {
@@ -87,66 +90,81 @@
                 return;
             }
 
-            const result = QRHandler.getPatientData(qrCode, true);
-
-            if (!result.success) {
-                Utils.showAlert(result.error, 'error');
+            // Extract patient ID from QR code format: LIFELINE-QR-{id}
+            const match = qrCode.match(/^LIFELINE-QR-(\d+)$/i);
+            if (!match) {
+                Utils.showAlert('Invalid QR code format. Expected: LIFELINE-QR-{id}', 'error');
                 clearPatientInfo();
                 return;
             }
 
-            displayPatientInfo(result.data, result.medicalRecords);
-        }
+            const patientId = match[1];
 
-        // Display patient information
-        function displayPatientInfo(patient, medicalRecords) {
-            const infoCard = document.getElementById('patientInfoCard');
-            const infoDiv = document.getElementById('patientInfo');
+            try {
+                const res = await fetch(`http://localhost:5000/api/patient/${patientId}`);
+                const data = await res.json();
 
-            infoDiv.innerHTML = formatPatientInfo(patient);
-            infoCard.classList.remove('hidden');
+                if (!data.success) {
+                    Utils.showAlert('Patient not found', 'error');
+                    clearPatientInfo();
+                    return;
+                }
 
-            // Display medical records
-            if (medicalRecords && medicalRecords.length > 0) {
-                displayMedicalRecords(medicalRecords);
-            } else {
-                const recordsSection = document.getElementById('medicalRecordsSection');
-                recordsSection.innerHTML = '<p class="text-muted">No medical documents uploaded</p>';
-                recordsSection.classList.remove('hidden');
+                displayPatientInfo(data.patient);
+            } catch (err) {
+                Utils.showAlert('Server error. Make sure the backend is running.', 'error');
+                console.error(err);
             }
         }
 
-        // Display medical records
-        function displayMedicalRecords(records) {
+        // Display patient information
+        function displayPatientInfo(p) {
+            const infoCard = document.getElementById('patientInfoCard');
+            const infoDiv = document.getElementById('patientInfo');
+
+            infoDiv.innerHTML = `
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Name:</div>
+                        <div class="info-value">${p.name}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Age:</div>
+                        <div class="info-value">${p.age} years</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Blood Group:</div>
+                        <div class="info-value"><span class="badge badge-danger">${p.blood_group || 'N/A'}</span></div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Allergies:</div>
+                        <div class="info-value">${p.allergies || 'None'}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Medical Conditions:</div>
+                        <div class="info-value">${p.medical_conditions || 'None'}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Regular Medications:</div>
+                        <div class="info-value">${p.regular_medications || 'None'}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Emergency Contacts:</div>
+                        <div class="info-value">${p.emergency_contacts || 'Not provided'}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Address:</div>
+                        <div class="info-value">${p.address || 'Not provided'}</div>
+                    </div>
+                </div>
+            `;
+
+            infoCard.classList.remove('hidden');
+
+            // Hide medical records section (not implemented via API yet)
             const recordsSection = document.getElementById('medicalRecordsSection');
-            const recordsList = document.getElementById('medicalRecordsList');
-
-            recordsList.innerHTML = records.map(record => `
-                <li class="document-item">
-                    <div class="document-info">
-                        <div class="document-name">${record.filename}</div>
-                        <div class="document-desc">${record.description || 'No description'}</div>
-                        <small class="text-muted">Uploaded: ${Utils.formatDate(record.createdAt)}</small>
-                    </div>
-                    <div class="document-actions">
-                        <button class="btn btn-sm btn-primary" onclick="viewDocument('${record.id}')">View/Download</button>
-                    </div>
-                </li>
-            `).join('');
-
+            recordsSection.innerHTML = '<p class="text-muted">No medical documents uploaded</p>';
             recordsSection.classList.remove('hidden');
-        }
-
-        // View document
-        function viewDocument(recordId) {
-            const record = Storage.getById(CONFIG.STORAGE_KEYS.MEDICAL_RECORDS, recordId);
-            if (!record) return;
-
-            const link = document.createElement('a');
-            link.href = record.fileData;
-            link.download = record.filename;
-            link.target = '_blank';
-            link.click();
         }
 
         // Clear patient info
@@ -155,6 +173,12 @@
             document.getElementById('patientInfoCard').classList.add('hidden');
             document.getElementById('patientInfo').innerHTML = '';
             document.getElementById('medicalRecordsSection').classList.add('hidden');
+        }
+
+        // Logout
+        function handleLogout() {
+            sessionStorage.removeItem(CONFIG.STORAGE_KEYS.CURRENT_USER);
+            window.location.href = '/pages/login.html';
         }
 
         // Allow Enter key to search

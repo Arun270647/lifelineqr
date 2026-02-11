@@ -124,164 +124,102 @@
     <script src="../js/main.js"></script>
 
     <script>
-        // Require authentication
-        if (!Auth.requireAuth() || !Auth.isRole(CONFIG.ROLES.PATIENT)) {
-            window.location.href = './login.html';
+        // Get current user from session (set during login)
+        const currentUser = JSON.parse(sessionStorage.getItem(CONFIG.STORAGE_KEYS.CURRENT_USER));
+
+        if (!currentUser || currentUser.role !== 'patient') {
+            window.location.href = '/pages/login.html';
         }
 
-        const currentUser = Auth.getCurrentUser();
+        // Set greeting
+        document.getElementById('userGreeting').textContent = `Welcome, ${currentUser.name}`;
+
         let qrCodeData = '';
 
-        // Load patient data
-        function loadPatientData() {
-            const fullUser = UserStorage.getUserById(currentUser.id);
-
-            // Display profile info
-            const profileDiv = document.getElementById('profileInfo');
-            profileDiv.innerHTML = `
-                <div class="info-grid">
-                    <div class="info-item">
-                        <div class="info-label">Name:</div>
-                        <div class="info-value">${fullUser.name}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Age:</div>
-                        <div class="info-value">${fullUser.age} years</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Blood Group:</div>
-                        <div class="info-value"><span class="badge badge-danger">${fullUser.bloodGroup}</span></div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Email:</div>
-                        <div class="info-value">${fullUser.email}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Allergies:</div>
-                        <div class="info-value">${fullUser.allergies || 'None'}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Medical Conditions:</div>
-                        <div class="info-value">${fullUser.medicalConditions || 'None'}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Regular Medications:</div>
-                        <div class="info-value">${fullUser.regularMedications || 'None'}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Emergency Contact:</div>
-                        <div class="info-value">${fullUser.emergencyContacts || 'Not provided'}</div>
-                    </div>
-                </div>
-            `;
-
-            // Generate and display QR code
-            const qrMapping = QRStorage.getQRByPatient(currentUser.id);
-            if (qrMapping) {
-                qrCodeData = qrMapping.qrCode;
-                document.getElementById('qrCodeId').textContent = qrCodeData;
-                QRHandler.generateQR('qrcode', qrCodeData);
-            }
-
-            // Load documents
-            loadDocuments();
-        }
-
-        // Load documents
-        function loadDocuments() {
-            const records = MedicalRecordStorage.getPatientRecords(currentUser.id);
-            const docList = document.getElementById('documentList');
-
-            if (records.length === 0) {
-                docList.innerHTML = '<li class="empty-state"><p>No documents uploaded yet</p></li>';
-                return;
-            }
-
-            docList.innerHTML = records.map(record => `
-                <li class="document-item">
-                    <div class="document-info">
-                        <div class="document-name">${record.filename}</div>
-                        <div class="document-desc">${record.description || 'No description'}</div>
-                        <small class="text-muted">Uploaded: ${Utils.formatDate(record.createdAt)}</small>
-                    </div>
-                    <div class="document-actions">
-                        <button class="btn btn-sm btn-primary" onclick="viewDocument('${record.id}')">View</button>
-                        <button class="btn btn-sm btn-danger" onclick="deleteDocument('${record.id}')">Delete</button>
-                    </div>
-                </li>
-            `).join('');
-        }
-
-        // Upload document
-        async function uploadDocument() {
-            const fileInput = document.getElementById('fileInput');
-            const description = document.getElementById('fileDescription').value.trim();
-
-            if (!fileInput.files.length) {
-                Utils.showAlert('Please select a file', 'error');
-                return;
-            }
-
-            const file = fileInput.files[0];
-            const validation = Utils.validateFile(file);
-
-            if (!validation.valid) {
-                Utils.showAlert(validation.errors.join(', '), 'error');
-                return;
-            }
-
+        // Load patient data from API
+        async function loadPatientData() {
             try {
-                const base64 = await Utils.fileToBase64(file);
+                const res = await fetch(`http://localhost:5000/api/patient/${currentUser.id}`);
+                const data = await res.json();
 
-                const record = {
-                    filename: file.name,
-                    fileType: file.type,
-                    fileData: base64,
-                    description: description || 'Medical Document',
-                    uploadedAt: new Date().toISOString()
-                };
+                if (!data.success) {
+                    Utils.showAlert('Failed to load profile', 'error');
+                    return;
+                }
 
-                MedicalRecordStorage.addRecord(currentUser.id, record);
+                const p = data.patient;
 
-                Utils.showAlert('Document uploaded successfully', 'success');
-                fileInput.value = '';
-                document.getElementById('fileDescription').value = '';
-                loadDocuments();
-            } catch (error) {
-                Utils.showAlert('Failed to upload document', 'error');
-            }
-        }
+                // Display profile info
+                const profileDiv = document.getElementById('profileInfo');
+                profileDiv.innerHTML = `
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Name:</div>
+                            <div class="info-value">${p.name}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Age:</div>
+                            <div class="info-value">${p.age} years</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Blood Group:</div>
+                            <div class="info-value"><span class="badge badge-danger">${p.blood_group || 'N/A'}</span></div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Email:</div>
+                            <div class="info-value">${p.email}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Allergies:</div>
+                            <div class="info-value">${p.allergies || 'None'}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Medical Conditions:</div>
+                            <div class="info-value">${p.medical_conditions || 'None'}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Regular Medications:</div>
+                            <div class="info-value">${p.regular_medications || 'None'}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Emergency Contact:</div>
+                            <div class="info-value">${p.emergency_contacts || 'Not provided'}</div>
+                        </div>
+                    </div>
+                `;
 
-        // View document
-        function viewDocument(recordId) {
-            const record = Storage.getById(CONFIG.STORAGE_KEYS.MEDICAL_RECORDS, recordId);
-            if (!record) return;
+                // Generate QR code from patient ID
+                qrCodeData = `LIFELINE-QR-${p.id}`;
+                document.getElementById('qrCodeId').textContent = qrCodeData;
+                document.getElementById('qrcode').innerHTML = '';
+                new QRCode(document.getElementById('qrcode'), {
+                    text: qrCodeData,
+                    width: 150,
+                    height: 150
+                });
 
-            const link = document.createElement('a');
-            link.href = record.fileData;
-            link.download = record.filename;
-            link.target = '_blank';
-            link.click();
-        }
-
-        // Delete document
-        function deleteDocument(recordId) {
-            if (confirm('Are you sure you want to delete this document?')) {
-                MedicalRecordStorage.deleteRecord(recordId);
-                Utils.showAlert('Document deleted', 'success');
-                loadDocuments();
+            } catch (err) {
+                console.error(err);
+                Utils.showAlert('Server error loading profile', 'error');
             }
         }
 
         // Show edit profile modal
-        function showEditProfile() {
-            const user = UserStorage.getUserById(currentUser.id);
-            document.getElementById('editAllergies').value = user.allergies || '';
-            document.getElementById('editConditions').value = user.medicalConditions || '';
-            document.getElementById('editMedications').value = user.regularMedications || '';
-            document.getElementById('editAddress').value = user.address || '';
-            document.getElementById('editEmergency').value = user.emergencyContacts || '';
-
+        async function showEditProfile() {
+            try {
+                const res = await fetch(`http://localhost:5000/api/patient/${currentUser.id}`);
+                const data = await res.json();
+                if (data.success) {
+                    const p = data.patient;
+                    document.getElementById('editAllergies').value = p.allergies || '';
+                    document.getElementById('editConditions').value = p.medical_conditions || '';
+                    document.getElementById('editMedications').value = p.regular_medications || '';
+                    document.getElementById('editAddress').value = p.address || '';
+                    document.getElementById('editEmergency').value = p.emergency_contacts || '';
+                }
+            } catch (err) {
+                console.error(err);
+            }
             document.getElementById('editModal').classList.add('active');
         }
 
@@ -290,29 +228,48 @@
             document.getElementById('editModal').classList.remove('active');
         }
 
-        // Handle edit form
-        document.getElementById('editForm').addEventListener('submit', function (e) {
+        // Handle edit form — save to API
+        document.getElementById('editForm').addEventListener('submit', async function (e) {
             e.preventDefault();
 
             const updates = {
                 allergies: document.getElementById('editAllergies').value.trim(),
-                medicalConditions: document.getElementById('editConditions').value.trim(),
-                regularMedications: document.getElementById('editMedications').value.trim(),
+                medical_conditions: document.getElementById('editConditions').value.trim(),
+                regular_medications: document.getElementById('editMedications').value.trim(),
                 address: document.getElementById('editAddress').value.trim(),
-                emergencyContacts: document.getElementById('editEmergency').value.trim()
+                emergency_contacts: document.getElementById('editEmergency').value.trim()
             };
 
-            UserStorage.updateUser(currentUser.id, updates);
-            Auth.createSession({ ...currentUser, ...updates });
+            try {
+                const res = await fetch(`http://localhost:5000/api/patient/${currentUser.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updates)
+                });
+                const data = await res.json();
 
-            Utils.showAlert('Profile updated successfully', 'success');
-            closeEditModal();
-            loadPatientData();
+                if (data.success) {
+                    Utils.showAlert('Profile updated successfully', 'success');
+                    closeEditModal();
+                    loadPatientData();
+                } else {
+                    Utils.showAlert(data.error || 'Update failed', 'error');
+                }
+            } catch (err) {
+                Utils.showAlert('Server error', 'error');
+                console.error(err);
+            }
         });
 
         // Download QR code
         function downloadQRCode() {
             QRHandler.downloadQR('qrcode', `lifeline-qr-${currentUser.name.replace(/\s+/g, '-')}.png`);
+        }
+
+        // Logout
+        function handleLogout() {
+            sessionStorage.removeItem(CONFIG.STORAGE_KEYS.CURRENT_USER);
+            window.location.href = '/pages/login.html';
         }
 
         // Initialize

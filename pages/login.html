@@ -37,8 +37,13 @@
 
                     <div class="form-group">
                         <label class="form-label required">Password</label>
-                        <input type="password" id="password" class="form-input" required
-                            autocomplete="current-password">
+                        <div style="position:relative;">
+                            <input type="password" id="password" class="form-input" required
+                                autocomplete="current-password" style="padding-right:40px;">
+                            <span id="togglePassword"
+                                onclick="const p=document.getElementById('password');const isHidden=p.type==='password';p.type=isHidden?'text':'password';this.textContent=isHidden?'🙈':'👁️';"
+                                style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:18px;user-select:none;">👁️</span>
+                        </div>
                     </div>
 
                     <div class="form-link" style="text-align: left; margin-top: 0;">
@@ -70,8 +75,8 @@
         const form = document.getElementById('loginForm');
         Validation.setupLiveValidation(form);
 
-        // Handle form submission
-        form.addEventListener('submit', function (e) {
+        // Handle form submission — POST to Python backend
+        form.addEventListener('submit', async function (e) {
             e.preventDefault();
 
             if (!Validation.validateForm(form)) {
@@ -82,23 +87,43 @@
             const email = document.getElementById('email').value.trim().toLowerCase();
             const password = document.getElementById('password').value;
 
-            const result = Auth.login(email, password);
+            try {
+                // Try patient login first, then doctor
+                let result = null;
+                let role = '';
 
-            if (result.success) {
-                Utils.showAlert('Login successful! Redirecting...', 'success');
-
-                // Redirect based on role
-                setTimeout(() => {
-                    if (result.user.role === CONFIG.ROLES.PATIENT) {
-                        window.location.href = './patient-dashboard.html';
-                    } else if (result.user.role === CONFIG.ROLES.DOCTOR) {
-                        window.location.href = './doctor-dashboard.html';
-                    } else {
-                        window.location.href = '../index.html';
+                for (const r of ['patient', 'doctor']) {
+                    const res = await fetch('http://localhost:5000/api/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, password, role: r })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        result = data;
+                        role = r;
+                        break;
                     }
-                }, 1000);
-            } else {
-                Utils.showAlert(result.error, 'error');
+                }
+
+                if (result && result.success) {
+                    // Store session for dashboard pages
+                    sessionStorage.setItem(CONFIG.STORAGE_KEYS.CURRENT_USER, JSON.stringify(result.user));
+
+                    Utils.showAlert('Login successful! Redirecting...', 'success');
+                    setTimeout(() => {
+                        if (role === 'patient') {
+                            window.location.href = '/pages/patient-dashboard.html';
+                        } else {
+                            window.location.href = '/pages/doctor-dashboard.html';
+                        }
+                    }, 1000);
+                } else {
+                    Utils.showAlert('Invalid email or password', 'error');
+                }
+            } catch (err) {
+                Utils.showAlert('Server error. Make sure the Python backend is running.', 'error');
+                console.error(err);
             }
         });
 
