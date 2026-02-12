@@ -28,6 +28,10 @@ switch ($method) {
         $email = sanitize($conn, $data['email']);
         $checkSql = "SELECT id FROM users WHERE email = ?";
         $stmt = $conn->prepare($checkSql);
+        if (!$stmt) {
+            echo json_encode(['success' => false, 'error' => 'DB prepare error: ' . $conn->error]);
+            exit();
+        }
         $stmt->bind_param('s', $email);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -53,6 +57,10 @@ switch ($method) {
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             
             $stmt = $conn->prepare($sql);
+            if (!$stmt) {
+                echo json_encode(['success' => false, 'error' => 'DB prepare error (patient): ' . $conn->error]);
+                exit();
+            }
             $bloodGroup = sanitize($conn, $data['bloodGroup'] ?? '');
             $allergies = sanitize($conn, $data['allergies'] ?? '');
             $conditions = sanitize($conn, $data['medicalConditions'] ?? '');
@@ -69,6 +77,10 @@ switch ($method) {
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             
             $stmt = $conn->prepare($sql);
+            if (!$stmt) {
+                echo json_encode(['success' => false, 'error' => 'DB prepare error (doctor): ' . $conn->error]);
+                exit();
+            }
             $specialization = sanitize($conn, $data['specialization'] ?? '');
             $experience = isset($data['experience']) ? intval($data['experience']) : 0;
             $hospital = sanitize($conn, $data['hospital'] ?? '');
@@ -103,7 +115,7 @@ switch ($method) {
                 ]
             ]);
         } else {
-            echo json_encode(['success' => false, 'error' => 'Failed to create user']);
+            echo json_encode(['success' => false, 'error' => 'Failed to create user: ' . $stmt->error]);
         }
         break;
         

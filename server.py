@@ -14,17 +14,121 @@ app = Flask(__name__)
 CORS(app)  # Allow requests from the frontend
 
 # ── MySQL connection config ──────────────────────────────────────────────────
-DB_CONFIG = {
-    'host': 'localhost',
-    'user': 'root',
-    'password': 'sjssjs',     # MySQL root password
-    'database': 'lifelineqr'
-}
+# Try common MySQL root passwords so the app works on any machine.
+# The first password that connects successfully will be used.
+# If none work, update the password below to match YOUR MySQL root password.
+_MYSQL_HOST = 'localhost'
+_MYSQL_USER = 'root'
+_MYSQL_DB   = 'lifelineqr'
+_MYSQL_PASSWORDS_TO_TRY = [
+    '',           # XAMPP / WAMP default (no password)
+    'sjssjs',     # Original developer password
+    'root',       # Common default
+    'mysql',      # Common default
+    'password',   # Common default
+]
 
+# Auto-detect the correct password
+_detected_password = None
+for _pwd in _MYSQL_PASSWORDS_TO_TRY:
+    try:
+        _test = mysql.connector.connect(
+            host=_MYSQL_HOST, user=_MYSQL_USER, password=_pwd
+        )
+        _test.close()
+        _detected_password = _pwd
+        break
+    except mysql.connector.Error:
+        continue
+
+if _detected_password is None:
+    print("=" * 60)
+    print("  ERROR: Could not connect to MySQL with any known password!")
+    print("  Open server.py and add your MySQL root password to")
+    print("  the _MYSQL_PASSWORDS_TO_TRY list (around line 24).")
+    print("=" * 60)
+    _detected_password = ''  # fallback – will fail with a clear message at runtime
+
+DB_CONFIG = {
+    'host': _MYSQL_HOST,
+    'user': _MYSQL_USER,
+    'password': _detected_password,
+    'database': _MYSQL_DB
+}
 
 def get_db():
     """Create and return a new MySQL connection."""
     return mysql.connector.connect(**DB_CONFIG)
+
+
+def _bootstrap_database():
+    """Create the database and tables if they do not exist."""
+    try:
+        conn = mysql.connector.connect(
+            host=_MYSQL_HOST, user=_MYSQL_USER, password=_detected_password
+        )
+        cursor = conn.cursor()
+        cursor.execute(f"CREATE DATABASE IF NOT EXISTS `{_MYSQL_DB}`")
+        cursor.close()
+        conn.close()
+
+        conn = get_db()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS patients (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
+                age INT NOT NULL,
+                email VARCHAR(255) UNIQUE NOT NULL,
+                password VARCHAR(255) NOT NULL,
+                blood_group VARCHAR(5),
+                allergies TEXT,
+                medical_conditions TEXT,
+                regular_medications TEXT,
+                address TEXT,
+                emergency_contacts VARCHAR(20),
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS doctors (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
+                age INT NOT NULL,
+                email VARCHAR(255) UNIQUE NOT NULL,
+                password VARCHAR(255) NOT NULL,
+                specialization VARCHAR(100),
+                experience INT,
+                hospital VARCHAR(255),
+                contact_number VARCHAR(20),
+                working_hours VARCHAR(50),
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS medical_documents (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                patient_id INT NOT NULL,
+                filename VARCHAR(255) NOT NULL,
+                file_data LONGTEXT NOT NULL,
+                description TEXT,
+                uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE
+            )
+        """)
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+        print("  ✓ Database and tables verified / created")
+    except mysql.connector.Error as err:
+        print(f"  ✗ Database bootstrap error: {err}")
+
+
+_bootstrap_database()
 
 
 # ── Patient endpoints ────────────────────────────────────────────────────────

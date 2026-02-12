@@ -18,6 +18,10 @@ switch ($method) {
         
         $sql = "SELECT * FROM users WHERE email = ? AND password = ?";
         $stmt = $conn->prepare($sql);
+        if (!$stmt) {
+            echo json_encode(['success' => false, 'error' => 'DB error: ' . $conn->error]);
+            exit();
+        }
         $stmt->bind_param('ss', $email, $password);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -45,6 +49,10 @@ switch ($method) {
         // Check if user exists
         $checkSql = "SELECT id FROM users WHERE email = ?";
         $stmt = $conn->prepare($checkSql);
+        if (!$stmt) {
+            echo json_encode(['success' => false, 'error' => 'DB error: ' . $conn->error]);
+            exit();
+        }
         $stmt->bind_param('s', $email);
         $stmt->execute();
         $result = $stmt->get_result();
