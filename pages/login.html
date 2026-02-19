@@ -88,7 +88,23 @@
             const password = document.getElementById('password').value;
 
             try {
-                // Try patient login first, then doctor
+                // ── Step 1: Try admin login (username = whatever was typed in email field) ──
+                const adminRes = await fetch('http://localhost:5000/api/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: email, password })
+                });
+                const adminData = await adminRes.json();
+
+                if (adminData.success) {
+                    // Save admin session and go to admin dashboard
+                    sessionStorage.setItem('admin_session', JSON.stringify(adminData.admin));
+                    Utils.showAlert('Welcome, Admin! Redirecting to control panel…', 'success');
+                    setTimeout(() => { window.location.href = '/pages/admin-dashboard.html'; }, 900);
+                    return;
+                }
+
+                // ── Step 2: Try patient then doctor ──
                 let result = null;
                 let role = '';
 
@@ -99,28 +115,21 @@
                         body: JSON.stringify({ email, password, role: r })
                     });
                     const data = await res.json();
-                    if (data.success) {
-                        result = data;
-                        role = r;
-                        break;
-                    }
+                    if (data.success) { result = data; role = r; break; }
                 }
 
                 if (result && result.success) {
-                    // Store session for dashboard pages
                     sessionStorage.setItem(CONFIG.STORAGE_KEYS.CURRENT_USER, JSON.stringify(result.user));
-
                     Utils.showAlert('Login successful! Redirecting...', 'success');
                     setTimeout(() => {
-                        if (role === 'patient') {
-                            window.location.href = '/pages/patient-dashboard.html';
-                        } else {
-                            window.location.href = '/pages/doctor-dashboard.html';
-                        }
+                        window.location.href = role === 'patient'
+                            ? '/pages/patient-dashboard.html'
+                            : '/pages/doctor-dashboard.html';
                     }, 1000);
                 } else {
                     Utils.showAlert('Invalid email or password', 'error');
                 }
+
             } catch (err) {
                 Utils.showAlert('Server error. Make sure the Python backend is running.', 'error');
                 console.error(err);

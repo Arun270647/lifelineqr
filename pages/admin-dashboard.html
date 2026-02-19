@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Admin Dashboard — LifeLine QR</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #0a0e1a;
+            --surface: #111827;
+            --surface2: #1a2236;
+            --border: rgba(255, 255, 255, 0.07);
+            --text: #f1f5f9;
+            --muted: rgba(255, 255, 255, 0.4);
+            --primary: #6366f1;
+            --primary2: #8b5cf6;
+            --green: #10b981;
+            --red: #ef4444;
+            --amber: #f59e0b;
+            --cyan: #06b6d4;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* ──────────── NAVBAR ──────────── */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 28px;
+            height: 62px;
+            background: rgba(17, 24, 39, 0.85);
+            border-bottom: 1px solid var(--border);
+            backdrop-filter: blur(16px);
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-icon {
+            width: 34px;
+            height: 34px;
+            background: linear-gradient(135deg, var(--primary), var(--primary2));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .nav-title {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .nav-badge {
+            font-size: 10px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), #ec4899);
+            padding: 2px 8px;
+            border-radius: 20px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .nav-user {
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .btn-logout {
+            padding: 7px 16px;
+            border-radius: 8px;
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            color: #f87171;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-logout:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+
+        /* ──────────── LAYOUT ──────────── */
+        .container {
+            max-width: 1320px;
+            margin: 0 auto;
+            padding: 32px 24px;
+        }
+
+        /* ──────────── PAGE HEADER ──────────── */
+        .page-header {
+            margin-bottom: 32px;
+        }
+
+        .page-header h1 {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .page-header p {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        /* ──────────── STATS GRID ──────────── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 18px;
+            margin-bottom: 36px;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px 22px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.14);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+        }
+
+        .stat-card.blue::before {
+            background: linear-gradient(90deg, var(--primary), var(--primary2));
+        }
+
+        .stat-card.green::before {
+            background: linear-gradient(90deg, var(--green), #34d399);
+        }
+
+        .stat-card.amber::before {
+            background: linear-gradient(90deg, var(--amber), #fbbf24);
+        }
+
+        .stat-card.cyan::before {
+            background: linear-gradient(90deg, var(--cyan), #38bdf8);
+        }
+
+        .stat-icon {
+            font-size: 28px;
+            margin-bottom: 14px;
+        }
+
+        .stat-value {
+            font-size: 38px;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        /* ──────────── TABS ──────────── */
+        .tabs {
+            display: flex;
+            gap: 4px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 4px;
+            width: fit-content;
+            margin-bottom: 24px;
+        }
+
+        .tab {
+            padding: 9px 22px;
+            border-radius: 9px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: var(--muted);
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .tab:not(.active):hover {
+            color: var(--text);
+        }
+
+        /* ──────────── SEARCH & CONTROLS BAR ──────────── */
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 220px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 11px 16px 11px 40px;
+            background: var(--surface2);
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-box input:focus {
+            border-color: var(--primary);
+        }
+
+        .search-box input::placeholder {
+            color: var(--muted);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 13px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted);
+            font-size: 15px;
+        }
+
+        .count-badge {
+            padding: 8px 16px;
+            border-radius: 10px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            font-size: 13px;
+            color: var(--muted);
+            white-space: nowrap;
+        }
+
+        .count-badge span {
+            color: var(--text);
+            font-weight: 700;
+        }
+
+        /* ──────────── TABLE ──────────── */
+        .table-wrap {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead th {
+            padding: 14px 16px;
+            text-align: left;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            color: var(--muted);
+            border-bottom: 1px solid var(--border);
+            background: var(--surface2);
+        }
+
+        tbody tr {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            transition: background 0.15s;
+        }
+
+        tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        tbody tr:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        tbody td {
+            padding: 14px 16px;
+            font-size: 13.5px;
+            color: var(--text);
+            vertical-align: middle;
+        }
+
+        .td-name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .td-sub {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+        }
+
+        .badge-blood {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.25);
+        }
+
+        .badge-docs {
+            background: rgba(99, 102, 241, 0.15);
+            color: #a5b4fc;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+
+        .badge-spec {
+            background: rgba(16, 185, 129, 0.12);
+            color: #6ee7b7;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .badge-exp {
+            background: rgba(245, 158, 11, 0.12);
+            color: #fcd34d;
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
+        .btn-delete {
+            padding: 6px 14px;
+            border-radius: 8px;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-delete:hover {
+            background: rgba(239, 68, 68, 0.22);
+            border-color: rgba(239, 68, 68, 0.4);
+        }
+
+        /* ──────────── EMPTY / LOADING ──────────── */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--muted);
+            font-size: 15px;
+        }
+
+        .empty-state div {
+            font-size: 42px;
+            margin-bottom: 12px;
+        }
+
+        /* ──────────── PANEL ──────────── */
+        .panel {
+            display: none;
+        }
+
+        .panel.active {
+            display: block;
+        }
+
+        /* ──────────── TOAST ──────────── */
+        #toast {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            padding: 14px 22px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            transform: translateY(80px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 999;
+            pointer-events: none;
+        }
+
+        #toast.success {
+            background: rgba(16, 185, 129, 0.9);
+            color: #fff;
+            box-shadow: 0 8px 30px rgba(16, 185, 129, 0.3);
+        }
+
+        #toast.error {
+            background: rgba(239, 68, 68, 0.9);
+            color: #fff;
+            box-shadow: 0 8px 30px rgba(239, 68, 68, 0.3);
+        }
+
+        #toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            table {
+                display: block;
+                overflow-x: auto;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <div class="nav-icon">⚕️</div>
+            <span class="nav-title">LifeLine QR</span>
+            <span class="nav-badge">Super Admin</span>
+        </div>
+        <div class="nav-right">
+            <span class="nav-user" id="adminName">Admin</span>
+            <button class="btn-logout" onclick="handleLogout()">Logout</button>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <div class="container">
+
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1>Control Panel</h1>
+            <p>Complete overview of all registered users and system data</p>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card blue">
+                <div class="stat-icon">🏥</div>
+                <div class="stat-value" id="statPatients">—</div>
+                <div class="stat-label">Total Patients</div>
+            </div>
+            <div class="stat-card green">
+                <div class="stat-icon">👨‍⚕️</div>
+                <div class="stat-value" id="statDoctors">—</div>
+                <div class="stat-label">Total Doctors</div>
+            </div>
+            <div class="stat-card amber">
+                <div class="stat-icon">📄</div>
+                <div class="stat-value" id="statDocs">—</div>
+                <div class="stat-label">Medical Documents</div>
+            </div>
+            <div class="stat-card cyan">
+                <div class="stat-icon">🆕</div>
+                <div class="stat-value" id="statToday">—</div>
+                <div class="stat-label">New Patients Today</div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" id="tabPatients" onclick="switchTab('patients')">🏥 Patients</button>
+            <button class="tab" id="tabDoctors" onclick="switchTab('doctors')">👨‍⚕️ Doctors</button>
+        </div>
+
+        <!-- ── PATIENTS PANEL ── -->
+        <div class="panel active" id="panelPatients">
+            <div class="controls">
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="patientSearch" placeholder="Search by name, email, blood group…"
+                        oninput="filterTable('patient')">
+                </div>
+                <div class="count-badge">Showing <span id="patientCount">0</span> patients</div>
+            </div>
+            <div class="table-wrap">
+                <table id="patientTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Patient</th>
+                            <th>Age</th>
+                            <th>Blood</th>
+                            <th>Allergies</th>
+                            <th>Conditions</th>
+                            <th>Emergency Contact</th>
+                            <th>Documents</th>
+                            <th>Joined</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="patientBody">
+                        <tr>
+                            <td colspan="10">
+                                <div class="empty-state">
+                                    <div>⏳</div>Loading patients…
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ── DOCTORS PANEL ── -->
+        <div class="panel" id="panelDoctors">
+            <div class="controls">
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="doctorSearch" placeholder="Search by name, email, specialization, hospital…"
+                        oninput="filterTable('doctor')">
+                </div>
+                <div class="count-badge">Showing <span id="doctorCount">0</span> doctors</div>
+            </div>
+            <div class="table-wrap">
+                <table id="doctorTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Doctor</th>
+                            <th>Age</th>
+                            <th>Specialization</th>
+                            <th>Hospital</th>
+                            <th>Experience</th>
+                            <th>Contact</th>
+                            <th>Working Hours</th>
+                            <th>Joined</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="doctorBody">
+                        <tr>
+                            <td colspan="10">
+                                <div class="empty-state">
+                                    <div>⏳</div>Loading doctors…
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div><!-- /container -->
+
+    <!-- Toast notification -->
+    <div id="toast"></div>
+
+    <script>
+        const API = 'http://localhost:5000';
+
+        // ── Auth guard ──────────────────────────────────────────────────────
+        const adminSession = JSON.parse(sessionStorage.getItem('admin_session'));
+        if (!adminSession) {
+            window.location.href = './admin-login.html';
+        } else {
+            document.getElementById('adminName').textContent = '👤 ' + adminSession.username;
+        }
+
+        // ── Raw data storage ────────────────────────────────────────────────
+        let allPatients = [];
+        let allDoctors = [];
+
+        // ── Init ──────────────────────────────────────────────────────────
+        async function init() {
+            await Promise.all([loadStats(), loadPatients(), loadDoctors()]);
+        }
+
+        // ── Stats ─────────────────────────────────────────────────────────
+        async function loadStats() {
+            try {
+                const res = await fetch(`${API}/api/admin/stats`);
+                const data = await res.json();
+                if (data.success) {
+                    const s = data.stats;
+                    animateCount('statPatients', s.total_patients);
+                    animateCount('statDoctors', s.total_doctors);
+                    animateCount('statDocs', s.total_documents);
+                    animateCount('statToday', s.new_today);
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        function animateCount(id, target) {
+            const el = document.getElementById(id);
+            let current = 0;
+            const step = Math.ceil(target / 30);
+            const timer = setInterval(() => {
+                current = Math.min(current + step, target);
+                el.textContent = current;
+                if (current >= target) clearInterval(timer);
+            }, 30);
+        }
+
+        // ── Patients ──────────────────────────────────────────────────────
+        async function loadPatients() {
+            try {
+                const res = await fetch(`${API}/api/admin/patients`);
+                const data = await res.json();
+                allPatients = data.patients || [];
+                renderPatients(allPatients);
+            } catch (e) {
+                document.getElementById('patientBody').innerHTML =
+                    `<tr><td colspan="10"><div class="empty-state"><div>⚠️</div>Failed to load. Is the backend running?</div></td></tr>`;
+            }
+        }
+
+        function renderPatients(list) {
+            const tbody = document.getElementById('patientBody');
+            document.getElementById('patientCount').textContent = list.length;
+            if (!list.length) {
+                tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state"><div>🏥</div>No patients registered yet</div></td></tr>`;
+                return;
+            }
+            tbody.innerHTML = list.map(p => `
+                <tr id="pr-${p.id}">
+                    <td><span style="color:var(--muted); font-size:12px;">#${p.id}</span></td>
+                    <td>
+                        <div class="td-name">${esc(p.name)}</div>
+                        <div class="td-sub">${esc(p.email)}</div>
+                    </td>
+                    <td>${p.age} yrs</td>
+                    <td><span class="badge badge-blood">${p.blood_group || '—'}</span></td>
+                    <td style="max-width:140px; white-space:normal; font-size:12px; color:var(--muted);">${esc(p.allergies) || '<em>None</em>'}</td>
+                    <td style="max-width:140px; white-space:normal; font-size:12px; color:var(--muted);">${esc(p.medical_conditions) || '<em>None</em>'}</td>
+                    <td style="font-size:12px;">${esc(p.emergency_contacts) || '—'}</td>
+                    <td><span class="badge badge-docs">📄 ${p.doc_count}</span></td>
+                    <td style="font-size:12px; color:var(--muted);">${formatDate(p.created_at)}</td>
+                    <td><button class="btn-delete" onclick="deletePatient(${p.id}, '${esc(p.name)}')">🗑 Delete</button></td>
+                </tr>
+            `).join('');
+        }
+
+        async function deletePatient(id, name) {
+            if (!confirm(`Delete patient "${name}"?\n\nThis will also delete all their medical documents.`)) return;
+            try {
+                const res = await fetch(`${API}/api/admin/patient/${id}`, { method: 'DELETE' });
+                const data = await res.json();
+                if (data.success) {
+                    allPatients = allPatients.filter(p => p.id !== id);
+                    renderPatients(getFilteredList('patient'));
+                    loadStats();
+                    toast('Patient deleted successfully', 'success');
+                } else { toast(data.error || 'Delete failed', 'error'); }
+            } catch (e) { toast('Server error', 'error'); }
+        }
+
+        // ── Doctors ───────────────────────────────────────────────────────
+        async function loadDoctors() {
+            try {
+                const res = await fetch(`${API}/api/admin/doctors`);
+                const data = await res.json();
+                allDoctors = data.doctors || [];
+                renderDoctors(allDoctors);
+            } catch (e) {
+                document.getElementById('doctorBody').innerHTML =
+                    `<tr><td colspan="10"><div class="empty-state"><div>⚠️</div>Failed to load. Is the backend running?</div></td></tr>`;
+            }
+        }
+
+        function renderDoctors(list) {
+            const tbody = document.getElementById('doctorBody');
+            document.getElementById('doctorCount').textContent = list.length;
+            if (!list.length) {
+                tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state"><div>👨‍⚕️</div>No doctors registered yet</div></td></tr>`;
+                return;
+            }
+            tbody.innerHTML = list.map(d => `
+                <tr id="dr-${d.id}">
+                    <td><span style="color:var(--muted); font-size:12px;">#${d.id}</span></td>
+                    <td>
+                        <div class="td-name">${esc(d.name)}</div>
+                        <div class="td-sub">${esc(d.email)}</div>
+                    </td>
+                    <td>${d.age} yrs</td>
+                    <td><span class="badge badge-spec">${esc(d.specialization) || '—'}</span></td>
+                    <td style="font-size:13px;">${esc(d.hospital) || '—'}</td>
+                    <td><span class="badge badge-exp">${d.experience ? d.experience + ' yrs' : '—'}</span></td>
+                    <td style="font-size:12px;">${esc(d.contact_number) || '—'}</td>
+                    <td style="font-size:12px; color:var(--muted);">${esc(d.working_hours) || '—'}</td>
+                    <td style="font-size:12px; color:var(--muted);">${formatDate(d.created_at)}</td>
+                    <td><button class="btn-delete" onclick="deleteDoctor(${d.id}, '${esc(d.name)}')">🗑 Delete</button></td>
+                </tr>
+            `).join('');
+        }
+
+        async function deleteDoctor(id, name) {
+            if (!confirm(`Delete doctor "${name}"?`)) return;
+            try {
+                const res = await fetch(`${API}/api/admin/doctor/${id}`, { method: 'DELETE' });
+                const data = await res.json();
+                if (data.success) {
+                    allDoctors = allDoctors.filter(d => d.id !== id);
+                    renderDoctors(getFilteredList('doctor'));
+                    loadStats();
+                    toast('Doctor deleted successfully', 'success');
+                } else { toast(data.error || 'Delete failed', 'error'); }
+            } catch (e) { toast('Server error', 'error'); }
+        }
+
+        // ── Search / filter ───────────────────────────────────────────────
+        function getFilteredList(type) {
+            if (type === 'patient') {
+                const q = document.getElementById('patientSearch').value.toLowerCase();
+                return q ? allPatients.filter(p =>
+                    [p.name, p.email, p.blood_group, p.allergies, p.medical_conditions]
+                        .some(v => (v || '').toLowerCase().includes(q))
+                ) : allPatients;
+            } else {
+                const q = document.getElementById('doctorSearch').value.toLowerCase();
+                return q ? allDoctors.filter(d =>
+                    [d.name, d.email, d.specialization, d.hospital]
+                        .some(v => (v || '').toLowerCase().includes(q))
+                ) : allDoctors;
+            }
+        }
+
+        function filterTable(type) {
+            if (type === 'patient') renderPatients(getFilteredList('patient'));
+            else renderDoctors(getFilteredList('doctor'));
+        }
+
+        // ── Tabs ──────────────────────────────────────────────────────────
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.getElementById('tab' + cap(tab)).classList.add('active');
+            document.getElementById('panel' + cap(tab)).classList.add('active');
+        }
+        function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+        // ── Toast ─────────────────────────────────────────────────────────
+        function toast(msg, type = 'success') {
+            const el = document.getElementById('toast');
+            el.textContent = (type === 'success' ? '✅ ' : '❌ ') + msg;
+            el.className = type + ' show';
+            setTimeout(() => { el.classList.remove('show'); }, 3200);
+        }
+
+        // ── Helpers ───────────────────────────────────────────────────────
+        function esc(str) {
+            if (!str) return '';
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+        function formatDate(iso) {
+            if (!iso) return '—';
+            const d = new Date(iso);
+            return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+        }
+
+        // ── Logout ────────────────────────────────────────────────────────
+        function handleLogout() {
+            sessionStorage.removeItem('admin_session');
+            window.location.href = './admin-login.html';
+        }
+
+        // ── Boot ──────────────────────────────────────────────────────────
+        init();
+    </script>
+</body>
+
+</html>

@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="../css/global.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/pages.css">
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 </head>
 
 <body>
@@ -41,7 +42,12 @@
                 <p>Enter the patient's QR code ID to view their medical information</p>
                 <div class="form-group">
                     <label class="form-label">QR Code ID</label>
-                    <input type="text" id="qrInput" class="form-input" placeholder="Enter or paste QR code ID">
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="qrInput" class="form-input" placeholder="Enter or paste QR code ID">
+                        <button class="btn btn-secondary" onclick="startQRScanner()" style="white-space: nowrap;">
+                            📷 Scan QR
+                        </button>
+                    </div>
                 </div>
                 <button class="btn btn-primary" onclick="lookupPatient()">Search Patient</button>
             </div>
@@ -63,6 +69,105 @@
         </div>
     </section>
 
+    <!-- GPay-style QR Scanner Modal -->
+    <div id="scannerModal" class="modal">
+        <div class="modal-content"
+            style="max-width: 480px; background: #000; border-radius: 16px; overflow: hidden; padding: 0;">
+
+            <!-- Header -->
+            <div style="display:flex; align-items:center; justify-content:space-between;
+                        padding: 14px 18px; background:#111;">
+                <h3 style="margin:0; color:#fff; font-size:17px; font-weight:600;">📷 Scan Patient QR</h3>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <button id="torchBtn" onclick="toggleTorch()" title="Toggle flashlight" style="background:rgba(255,255,255,0.12); border:none; border-radius:50%;
+                               width:36px; height:36px; font-size:18px; cursor:pointer;
+                               display:flex; align-items:center; justify-content:center;">🔦</button>
+                    <button onclick="stopQRScanner()"
+                        style="background:rgba(255,255,255,0.12); border:none; border-radius:50%;
+                               width:36px; height:36px; font-size:20px; color:#fff; cursor:pointer;
+                               display:flex; align-items:center; justify-content:center; line-height:1;">&times;</button>
+                </div>
+            </div>
+
+            <!-- Camera view -->
+            <div style="position:relative; background:#000;">
+                <!-- html5-qrcode renders into #reader -->
+                <div id="reader" style="width:100%;"></div>
+
+                <!-- Corner bracket overlay -->
+                <div id="scanOverlay" style="position:absolute; inset:0; pointer-events:none;">
+
+                    <!-- Dark vignette outside the scan zone -->
+                    <div id="vignetteTop"
+                        style="position:absolute; left:0; right:0; top:0; background:rgba(0,0,0,0.5);"></div>
+                    <div id="vignetteBottom"
+                        style="position:absolute; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5);"></div>
+                    <div id="vignetteLeft"
+                        style="position:absolute; top:0; bottom:0; left:0; background:rgba(0,0,0,0.5);"></div>
+                    <div id="vignetteRight"
+                        style="position:absolute; top:0; bottom:0; right:0; background:rgba(0,0,0,0.5);"></div>
+
+                    <!-- Corner brackets (green, GPay-style) -->
+                    <div id="bracketBox" style="position:absolute; box-sizing:border-box;">
+                        <!-- TL -->
+                        <div
+                            style="position:absolute; top:-2px; left:-2px; width:28px; height:28px;
+                                    border-top:4px solid #00e676; border-left:4px solid #00e676; border-radius:4px 0 0 0;">
+                        </div>
+                        <!-- TR -->
+                        <div
+                            style="position:absolute; top:-2px; right:-2px; width:28px; height:28px;
+                                    border-top:4px solid #00e676; border-right:4px solid #00e676; border-radius:0 4px 0 0;">
+                        </div>
+                        <!-- BL -->
+                        <div
+                            style="position:absolute; bottom:-2px; left:-2px; width:28px; height:28px;
+                                    border-bottom:4px solid #00e676; border-left:4px solid #00e676; border-radius:0 0 0 4px;">
+                        </div>
+                        <!-- BR -->
+                        <div
+                            style="position:absolute; bottom:-2px; right:-2px; width:28px; height:28px;
+                                    border-bottom:4px solid #00e676; border-right:4px solid #00e676; border-radius:0 0 4px 0;">
+                        </div>
+
+                        <!-- Animated laser line -->
+                        <div id="laserLine" style="
+                            position:absolute; left:4px; right:4px; height:2px;
+                            background: linear-gradient(90deg, transparent, #00e676, #69ff47, #00e676, transparent);
+                            box-shadow: 0 0 8px #00e676, 0 0 18px #00e676;
+                            animation: laserSweep 1.8s ease-in-out infinite;
+                        "></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hint text -->
+            <p style="margin:0; padding:14px 0 18px; text-align:center;
+                       color:rgba(255,255,255,0.7); font-size:13px; background:#111;">
+                Hold the QR code <strong style="color:#fff;">anywhere in view</strong> — it will scan automatically
+            </p>
+        </div>
+    </div>
+
+    <style>
+        @keyframes laserSweep {
+            0% {
+                top: 4px;
+                opacity: 1;
+            }
+
+            50% {
+                top: calc(100% - 6px);
+                opacity: 1;
+            }
+
+            100% {
+                top: 4px;
+                opacity: 1;
+            }
+        }
+    </style>
+
     <script src="../js/config.js"></script>
     <script src="../js/storage.js"></script>
     <script src="../js/auth.js"></script>
@@ -71,6 +176,123 @@
     <script src="../js/main.js"></script>
 
     <script>
+        let html5QrCode;
+        let torchOn = false;
+
+        function startQRScanner() {
+            document.getElementById('scannerModal').classList.add('active');
+            torchOn = false;
+
+            // Destroy any stale instance
+            if (html5QrCode) {
+                try { html5QrCode.stop().catch(() => { }); } catch (e) { }
+                html5QrCode = null;
+            }
+            html5QrCode = new Html5Qrcode('reader');
+
+            // ── GPay-style config ──────────────────────────────────────────
+            // qrbox as a function → covers 85 % of the shorter dimension.
+            // The whole visible frame is processed; the box is just a visual guide.
+            const qrboxFn = (w, h) => {
+                const side = Math.floor(Math.min(w, h) * 0.85);
+                return { width: side, height: side };
+            };
+
+            const config = {
+                fps: 30,          // 30 frames/sec for fast detection
+                qrbox: qrboxFn    // 85% of frame — no need to "fit" the QR perfectly
+            };
+
+            html5QrCode
+                .start({ facingMode: 'environment' }, config, onScanSuccess)
+                .then(() => {
+                    // Position the overlay brackets to match the actual qrbox
+                    positionOverlay();
+                })
+                .catch(err => {
+                    console.error('Scanner start error', err);
+                    Utils.showAlert('Could not start camera. Please check permissions.', 'error');
+                    document.getElementById('scannerModal').classList.remove('active');
+                });
+        }
+
+        // Align the decorative bracket box over the real scan region
+        function positionOverlay() {
+            // html5-qrcode paints a shaded region; we simply mirror it for the brackets
+            setTimeout(() => {
+                const readerEl = document.getElementById('reader');
+                const video = readerEl.querySelector('video');
+                if (!video) return;
+
+                const rw = readerEl.offsetWidth;
+                const rh = video.offsetHeight || readerEl.offsetHeight;
+                const side = Math.floor(Math.min(rw, rh) * 0.85);
+                const left = Math.floor((rw - side) / 2);
+                const top = Math.floor((rh - side) / 2);
+
+                // Vignette panels
+                const vT = document.getElementById('vignetteTop');
+                const vB = document.getElementById('vignetteBottom');
+                const vL = document.getElementById('vignetteLeft');
+                const vR = document.getElementById('vignetteRight');
+                if (vT) { vT.style.height = top + 'px'; }
+                if (vB) { vB.style.height = (rh - top - side) + 'px'; }
+                if (vL) { vL.style.top = top + 'px'; vL.style.bottom = (rh - top - side) + 'px'; vL.style.width = left + 'px'; }
+                if (vR) { vR.style.top = top + 'px'; vR.style.bottom = (rh - top - side) + 'px'; vR.style.width = (rw - left - side) + 'px'; }
+
+                // Bracket box
+                const bb = document.getElementById('bracketBox');
+                if (bb) {
+                    bb.style.left = left + 'px';
+                    bb.style.top = top + 'px';
+                    bb.style.width = side + 'px';
+                    bb.style.height = side + 'px';
+                }
+
+                // Overlay container matches video height
+                const overlay = document.getElementById('scanOverlay');
+                if (overlay) overlay.style.height = rh + 'px';
+            }, 600);
+        }
+
+        function onScanSuccess(decodedText) {
+            // Flash green to confirm scan — like GPay
+            const bb = document.getElementById('bracketBox');
+            if (bb) {
+                bb.querySelectorAll('div').forEach(d => d.style.borderColor = '#ffffff');
+                setTimeout(() => {
+                    bb.querySelectorAll('div').forEach(d => d.style.borderColor = '#00e676');
+                }, 200);
+            }
+            document.getElementById('qrInput').value = decodedText;
+            stopQRScanner();
+            setTimeout(() => lookupPatient(), 300);
+        }
+
+        // Torch / flashlight toggle
+        async function toggleTorch() {
+            if (!html5QrCode) return;
+            try {
+                torchOn = !torchOn;
+                await html5QrCode.applyVideoConstraints({
+                    advanced: [{ torch: torchOn }]
+                });
+                document.getElementById('torchBtn').style.background =
+                    torchOn ? 'rgba(255,230,0,0.3)' : 'rgba(255,255,255,0.12)';
+            } catch (e) {
+                console.warn('Torch not supported on this device', e);
+            }
+        }
+
+        function stopQRScanner() {
+            if (html5QrCode) {
+                html5QrCode.stop()
+                    .then(() => { html5QrCode.clear(); html5QrCode = null; })
+                    .catch(() => { html5QrCode = null; });
+            }
+            document.getElementById('scannerModal').classList.remove('active');
+        }
+
         // Get current user from session
         const currentUser = JSON.parse(sessionStorage.getItem(CONFIG.STORAGE_KEYS.CURRENT_USER));
 
@@ -81,7 +303,7 @@
         // Set greeting
         document.getElementById('userGreeting').textContent = `Welcome back, ${currentUser.name}!`;
 
-        // Lookup patient by QR code via API
+        // Lookup patient by QR code — handles all QR formats
         async function lookupPatient() {
             const qrCode = document.getElementById('qrInput').value.trim();
 
@@ -90,18 +312,52 @@
                 return;
             }
 
-            // Extract patient ID from QR code format: LIFELINE-QR-{id}
-            const match = qrCode.match(/^LIFELINE-QR-(\d+)$/i);
-            if (!match) {
-                Utils.showAlert('Invalid QR code format. Expected: LIFELINE-QR-{id}', 'error');
+            let patientId = null;
+
+            // Format 1: LIFELINE-QR-{id}  (standard format)
+            const stdMatch = qrCode.match(/LIFELINE-QR-(\d+)/i);
+            if (stdMatch) patientId = stdMatch[1];
+
+            // Format 2: URL containing ?id={id} or &id={id}
+            if (!patientId) {
+                const urlMatch = qrCode.match(/[?&]id=(\d+)/i);
+                if (urlMatch) patientId = urlMatch[1];
+            }
+
+            // Format 3: bare numeric ID typed manually (e.g. "4")
+            if (!patientId && /^\d+$/.test(qrCode)) {
+                patientId = qrCode;
+            }
+
+            // Format 4: old embedded plain-text QR (EMERGENCY MEDICAL INFO block)
+            if (!patientId && (qrCode.includes('EMERGENCY MEDICAL INFO') || qrCode.includes('Name:'))) {
+                const extract = (label) => {
+                    const re = new RegExp(label + ':\\s*(.+)', 'i');
+                    const m = qrCode.match(re);
+                    return m ? m[1].trim() : 'N/A';
+                };
+                displayPatientInfo({
+                    name: extract('Name'),
+                    age: extract('Age'),
+                    blood_group: extract('Blood Group'),
+                    allergies: extract('Allergies'),
+                    medical_conditions: extract('Medical Conditions'),
+                    regular_medications: extract('Medications'),
+                    emergency_contacts: extract('Emergency Contact'),
+                    address: extract('Address')
+                });
+                displayMedicalRecords([]);
+                Utils.showAlert('Patient info loaded from QR text (documents not available for this format).', 'info');
+                return;
+            }
+
+            if (!patientId) {
+                Utils.showAlert('Unrecognized QR code format. Please scan a valid LifeLine QR code.', 'error');
                 clearPatientInfo();
                 return;
             }
 
-            const patientId = match[1];
-
             try {
-                // Fetch patient and documents in parallel
                 const [patientRes, docsRes] = await Promise.all([
                     fetch(`http://localhost:5000/api/patient/${patientId}`),
                     fetch(`http://localhost:5000/api/patient/${patientId}/documents`)
@@ -111,7 +367,7 @@
                 const docsData = await docsRes.json();
 
                 if (!patientData.success) {
-                    Utils.showAlert('Patient not found', 'error');
+                    Utils.showAlert('Patient not found. Check the QR code and try again.', 'error');
                     clearPatientInfo();
                     return;
                 }

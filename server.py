@@ -120,6 +120,21 @@ def _bootstrap_database():
             )
         """)
 
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS admins (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                username VARCHAR(100) UNIQUE NOT NULL,
+                password VARCHAR(255) NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
+        # Insert default admin if not exists
+        cursor.execute("""
+            INSERT IGNORE INTO admins (username, password)
+            VALUES ('admin', 'admin@123')
+        """)
+
         conn.commit()
         cursor.close()
         conn.close()
@@ -497,6 +512,139 @@ def delete_document(doc_id):
 
         return jsonify({'success': True, 'message': 'Document deleted'})
 
+    except mysql.connector.Error as err:
+        return jsonify({'success': False, 'error': str(err)}), 500
+
+
+# ── Admin endpoints ───────────────────────────────────────────────────────────
+
+@app.route('/api/admin/login', methods=['POST'])
+def admin_login():
+    """Authenticate a super admin."""
+    data = request.get_json()
+    username = data.get('username', '').strip()
+    password = data.get('password', '')
+    if not username or not password:
+        return jsonify({'success': False, 'error': 'Username and password required'}), 400
+    try:
+        conn = get_db()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute('SELECT * FROM admins WHERE username = %s', (username,))
+        admin = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        if not admin or admin['password'] != password:
+            return jsonify({'success': False, 'error': 'Invalid credentials'}), 401
+        return jsonify({'success': True, 'admin': {'id': admin['id'], 'username': admin['username']}})
+    except mysql.connector.Error as err:
+        return jsonify({'success': False, 'error': str(err)}), 500
+
+
+@app.route('/api/admin/stats', methods=['GET'])
+def admin_stats():
+    """Return aggregate counts for the dashboard."""
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute('SELECT COUNT(*) FROM patients')
+        total_patients = cursor.fetchone()[0]
+        cursor.execute('SELECT COUNT(*) FROM doctors')
+        total_doctors = cursor.fetchone()[0]
+        cursor.execute('SELECT COUNT(*) FROM medical_documents')
+        total_docs = cursor.fetchone()[0]
+        cursor.execute("SELECT COUNT(*) FROM patients WHERE DATE(created_at) = CURDATE()")
+        new_today = cursor.fetchone()[0]
+        cursor.close()
+        conn.close()
+        return jsonify({
+            'success': True,
+            'stats': {
+                'total_patients': total_patients,
+                'total_doctors': total_doctors,
+                'total_documents': total_docs,
+                'new_today': new_today
+            }
+        })
+    except mysql.connector.Error as err:
+        return jsonify({'success': False, 'error': str(err)}), 500
+
+
+@app.route('/api/admin/patients', methods=['GET'])
+def admin_get_patients():
+    """Full patient list for admin (excludes passwords)."""
+    try:
+        conn = get_db()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("""
+            SELECT p.id, p.name, p.age, p.email, p.blood_group,
+                   p.allergies, p.medical_conditions, p.regular_medications,
+                   p.address, p.emergency_contacts, p.created_at,
+                   COUNT(d.id) AS doc_count
+            FROM patients p
+            LEFT JOIN medical_documents d ON d.patient_id = p.id
+            GROUP BY p.id
+            ORDER BY p.created_at DESC
+        """)
+        rows = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        for r in rows:
+            if r.get('created_at'):
+                r['created_at'] = r['created_at'].isoformat()
+        return jsonify({'success': True, 'patients': rows})
+    except mysql.connector.Error as err:
+        return jsonify({'success': False, 'error': str(err)}), 500
+
+
+@app.route('/api/admin/doctors', methods=['GET'])
+def admin_get_doctors():
+    """Full doctor list for admin (excludes passwords)."""
+    try:
+        conn = get_db()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("""
+            SELECT id, name, age, email, specialization, experience,
+                   hospital, contact_number, working_hours, created_at
+            FROM doctors
+            ORDER BY created_at DESC
+        """)
+        rows = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        for r in rows:
+            if r.get('created_at'):
+                r['created_at'] = r['created_at'].isoformat()
+        return jsonify({'success': True, 'doctors': rows})
+    except mysql.connector.Error as err:
+        return jsonify({'success': False, 'error': str(err)}), 500
+
+
+@app.route('/api/admin/patient/<int:patient_id>', methods=['DELETE'])
+def admin_delete_patient(patient_id):
+    """Delete a patient (and cascade their documents)."""
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM patients WHERE id = %s', (patient_id,))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return jsonify({'success': True, 'message': 'Patient deleted'})
+    except mysql.connector.Error as err:
+        return jsonify({'success': False, 'error': str(err)}), 500
+
+
+@app.route('/api/admin/doctor/<int:doctor_id>', methods=['DELETE'])
+def admin_delete_doctor(doctor_id):
+    """Delete a doctor."""
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM doctors WHERE id = %s', (doctor_id,))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return jsonify({'success': True, 'message': 'Doctor deleted'})
     except mysql.connector.Error as err:
         return jsonify({'success': False, 'error': str(err)}), 500
 
