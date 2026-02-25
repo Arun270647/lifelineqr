@@ -614,7 +614,7 @@
         if (!adminSession) {
             window.location.href = './admin-login.html';
         } else {
-            document.getElementById('adminName').textContent = '👤 ' + adminSession.username;
+            document.getElementById('adminName').textContent = '👤 ' + adminSession.email;
         }
 
         // ── Raw data storage ────────────────────────────────────────────────

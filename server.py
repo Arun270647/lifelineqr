@@ -26,6 +26,7 @@ _MYSQL_PASSWORDS_TO_TRY = [
     'root',       # Common default
     'mysql',      # Common default
     'password',   # Common default
+    'MC9044PKM',  # Client's password
 ]
 
 # Auto-detect the correct password
@@ -123,7 +124,7 @@ def _bootstrap_database():
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS admins (
                 id INT AUTO_INCREMENT PRIMARY KEY,
-                username VARCHAR(100) UNIQUE NOT NULL,
+                email VARCHAR(255) UNIQUE NOT NULL,
                 password VARCHAR(255) NOT NULL,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
@@ -131,8 +132,8 @@ def _bootstrap_database():
 
         # Insert default admin if not exists
         cursor.execute("""
-            INSERT IGNORE INTO admins (username, password)
-            VALUES ('admin', 'admin@123')
+            INSERT IGNORE INTO admins (email, password)
+            VALUES ('admin@lifelineqr.com', 'admin@123')
         """)
 
         conn.commit()
@@ -520,22 +521,22 @@ def delete_document(doc_id):
 
 @app.route('/api/admin/login', methods=['POST'])
 def admin_login():
-    """Authenticate a super admin."""
+    """Authenticate a super admin using email + password."""
     data = request.get_json()
-    username = data.get('username', '').strip()
+    email    = data.get('email', '').strip().lower()
     password = data.get('password', '')
-    if not username or not password:
-        return jsonify({'success': False, 'error': 'Username and password required'}), 400
+    if not email or not password:
+        return jsonify({'success': False, 'error': 'Email and password required'}), 400
     try:
         conn = get_db()
         cursor = conn.cursor(dictionary=True)
-        cursor.execute('SELECT * FROM admins WHERE username = %s', (username,))
+        cursor.execute('SELECT * FROM admins WHERE email = %s', (email,))
         admin = cursor.fetchone()
         cursor.close()
         conn.close()
         if not admin or admin['password'] != password:
             return jsonify({'success': False, 'error': 'Invalid credentials'}), 401
-        return jsonify({'success': True, 'admin': {'id': admin['id'], 'username': admin['username']}})
+        return jsonify({'success': True, 'admin': {'id': admin['id'], 'email': admin['email']}})
     except mysql.connector.Error as err:
         return jsonify({'success': False, 'error': str(err)}), 500
 

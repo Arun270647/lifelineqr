@@ -88,11 +88,11 @@
             const password = document.getElementById('password').value;
 
             try {
-                // ── Step 1: Try admin login (username = whatever was typed in email field) ──
+                // ── Step 1: Try admin login ──
                 const adminRes = await fetch('http://localhost:5000/api/admin/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: email, password })
+                    body: JSON.stringify({ email, password })
                 });
                 const adminData = await adminRes.json();
 

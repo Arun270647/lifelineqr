@@ -2,319 +2,151 @@
 
 A web-based emergency medical information system that uses QR codes to provide instant access to patient medical data during emergencies.
 
-## 🌟 Features
-
-### For Patients
-- Register and create medical profile
-- Store critical information (blood group, allergies, medical conditions)
-- Upload medical documents (PDF, JPG, PNG)
-- Generate unique QR code
-- Order physical QR medical cards
-- Update profile information anytime
-
-### For Doctors
-- Register as medical professional
-- Search patients using QR code ID
-- View complete medical profiles
-- Access uploaded medical documents
-- Read-only access to patient data
-
-### For Public/First Responders
-- Scan QR code to view emergency information
-- Access critical details (blood group, allergies, emergency contacts)
-- No login required for emergency data
-
-## 🛠️ Technology Stack
-
-- **Frontend**: HTML5, CSS3, Vanilla JavaScript
-- **Storage**: Browser LocalStorage/IndexedDB
-- **QR Generation**: QRCode.js library
-- **Design**: Medical-themed responsive design
-
-## 📁 Project Structure
-
-```
-basic/
-├── index.html              # Home page
-├── database.sql            # LocalStorage initialization guide
-├── css/
-│   ├── global.css         # Global styles and variables
-│   ├── components.css     # Reusable components
-│   └── pages.css          # Page-specific styles
-├── js/
-│   ├── config.js          # Configuration and constants
-│   ├── storage.js         # LocalStorage operations
-│   ├── auth.js            # Authentication logic
-│   ├── validation.js      # Form validation
-│   ├── qr-handler.js      # QR code handling
-│   ├── router.js          # Navigation
-│   └── main.js            # Main application logic
-└── pages/
-    ├── role-selection.html       # Choose Doctor/Patient
-    ├── register-patient.html     # Patient registration
-    ├── register-doctor.html      # Doctor registration
-    ├── login.html                # Login page
-    ├── patient-dashboard.html    # Patient dashboard
-    ├── doctor-dashboard.html     # Doctor dashboard
-    ├── doctors-list.html         # List of doctors
-    ├── merchandise.html          # QR card shop
-    ├── forgot-password.html      # Password reset
-    └── contact.html              # Contact page
-```
-
-## 🚀 Getting Started
-
-### Installation
-
-1. **Download/Clone the project**
-   - No installation required!
-   - This is a pure HTML/CSS/JavaScript application
-
-2. **Open the application**
-   - Simply open `index.html` in any modern web browser
-   - Recommended browsers: Chrome, Firefox, Edge, Safari
-
-### First Time Setup
-
-1. **Initialize Database**
-   - The database (LocalStorage) is automatically initialized when you open the app
-   - Check `database.sql` for detailed information about data structure
-
-2. **Create Accounts**
-   - Click "Sign Up" → Choose role (Patient/Doctor)
-   - Fill in the registration form
-   - For patients: QR code is automatically generated
-
-3. **Login**
-   - Use your registered email and password
-   - Patients are redirected to Patient Dashboard
-   - Doctors are redirected to Doctor Dashboard
-
-## 📖 Usage Guide
-
-### For Patients
-
-1. **Register**
-   - Click "Sign Up" → "Register as Patient"
-   - Fill in personal and medical information
-   - Submit to receive your QR code
-
-2. **View/Download QR Code**
-   - Login to your dashboard
-   - Find your QR code in the dashboard
-   - Click "Download QR Code" to save as image
-
-3. **Upload Medical Documents**
-   - Go to your dashboard
-   - Use the "Upload Medical Document" section
-   - Select file (PDF/JPG/PNG, max 5MB)
-   - Add description and upload
-
-4. **Order QR Card**
-   - Navigate to "Merchandise" page
-   - Choose Standard (₹299) or Premium (₹599) card
-   - Fill in delivery details
-   - Place order (simulated)
-
-### For Doctors
-
-1. **Register**
-   - Click "Sign Up" → "Register as Doctor"
-   - Fill in professional details
-   - Submit to create account
-
-2. **Search Patients**
-   - Login to doctor dashboard
-   - Enter patient's QR code ID
-   - Click "Search Patient"
-   - View complete medical profile and documents
-
-3. **View Medical Records**
-   - Patient medical documents are listed below profile
-   - Click "View/Download" to access documents
-
-### For Emergency/Public Access
-
-1. **Scan QR Code**
-   - Scan patient's QR code (feature page not included in basic version)
-   - View emergency information without login:
-     - Name
-     - Age
-     - Blood Group
-     - Allergies
-     - Emergency Contacts
-
-## 🔑 Default Credentials
-
-Create new accounts using the registration pages. No default accounts are pre-configured.
-
-## 🗄️ Database Management
-
-### View Data
-
-Open browser console (F12) and run:
-
-```javascript
-// View all users
-console.log(JSON.parse(localStorage.getItem('lifeline_users')));
-
-// View QR mappings
-console.log(JSON.parse(localStorage.getItem('lifeline_qr_mappings')));
-
-// View medical records
-console.log(JSON.parse(localStorage.getItem('lifeline_medical_records')));
-
-// View orders
-console.log(JSON.parse(localStorage.getItem('lifeline_orders')));
-```
-
-### Clear All Data
-
-```javascript
-localStorage.clear();
-sessionStorage.clear();
-location.reload();
-```
-
-### Backup Data
-
-```javascript
-const backup = {
-    users: localStorage.getItem('lifeline_users'),
-    records: localStorage.getItem('lifeline_medical_records'),
-    qr: localStorage.getItem('lifeline_qr_mappings'),
-    orders: localStorage.getItem('lifeline_orders')
-};
-console.log('BACKUP:', JSON.stringify(backup));
-// Copy the output and save to a file
-```
-
-### Restore Data
-
-```javascript
-// Paste your backup data
-const backup = { /* your backup data */ };
-localStorage.setItem('lifeline_users', backup.users);
-localStorage.setItem('lifeline_medical_records', backup.records);
-localStorage.setItem('lifeline_qr_mappings', backup.qr);
-localStorage.setItem('lifeline_orders', backup.orders);
-location.reload();
-```
-
-## 🎨 Customization
-
-### Change Color Theme
-
-Edit `css/global.css`:
-
-```css
-:root {
-    --primary-blue: #2C5F9E;    /* Change primary color */
-    --red-accent: #DC3545;      /* Change accent color */
-    --light-blue: #E3F2FD;      /* Change background highlights */
-}
-```
-
-### Modify Blood Groups
-
-Edit `js/config.js`:
-
-```javascript
-BLOOD_GROUPS: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
-```
-
-### Add Doctor Specializations
-
-Edit `js/config.js`:
-
-```javascript
-SPECIALIZATIONS: [
-    'General Physician',
-    'Cardiologist',
-    // Add more here
-]
-```
-
-## 📋 Features Checklist
-
-- ✅ Patient Registration
-- ✅ Doctor Registration
-- ✅ Login/Logout System
-- ✅ QR Code Generation
-- ✅ Patient Dashboard
-- ✅ Doctor Dashboard
-- ✅ Medical Document Upload
-- ✅ Doctors List
-- ✅ Merchandise Ordering
-- ✅ Forgot Password
-- ✅ Contact Form
-- ✅ Profile Editing
-- ✅ Form Validation
-- ✅ Responsive Design
-- ✅ LocalStorage Database
-
-## 🔒 Security Notes
-
-⚠️ **Important**: This is an educational/demonstration project
-
-- Passwords are encoded with Base64 (NOT secure for production)
-- Medical data is stored unencrypted in browser LocalStorage
-- No server-side validation or security
-- For production use, implement:
-  - Proper server-side authentication
-  - HTTPS encryption
-  - Database with proper security
-  - HIPAA/medical data compliance
-
-## 🐛 Troubleshooting
-
-### QR Code Not Displaying
-- Ensure QRCode.js library is loaded (check browser console)
-- Check internet connection (library loads from CDN)
-- Clear browser cache and reload
-
-### Data Not Persisting
-- Check if browser allows LocalStorage
-- Check LocalStorage quota (usually 5-10MB)
-- Try clearing browser data and reinitializing
-
-### File Upload Fails
-- Ensure file is under 5MB
-- Check file type (PDF, JPG, PNG only)
-- Check browser LocalStorage space
-
-### Forgot Password Not Working
-- Enter the exact email used during registration
-- Email is case-sensitive (stored as lowercase)
-
-## 📝 Browser Compatibility
-
-- ✅ Chrome 90+
-- ✅ Firefox 88+
-- ✅ Edge 90+
-- ✅ Safari 14+
-- ❌ Internet Explorer (not supported)
-
-## 📞 Support
-
-For issues or questions:
-- Email: support@lifelineqr.com
-- Phone: +91 98765 43210
-
-## 👥 Credits
-
-- **Developed by**: Track My Academy - Dev Ops
-- **Prepared for**: Mr. Purvaj Sai
-- **QR Library**: QRCode.js by davidshimjs
-
-## 📄 License
-
-This project is created for educational purposes.
-
-## 🔄 Version
-
-Version 1.0.0 - January 2026
+## 📈 Project Journey & Evolution
+
+Built from scratch, LifeLine QR has evolved significantly to accommodate robust requirements and advanced technology stacks:
+
+- **Phase 1: Prototype Development**  
+  Originally built strictly using HTML, CSS, and Vanilla JavaScript, relying entirely on LocalStorage and IndexedDB to simulate a backend for demo purposes.
+- **Phase 2: PHP & MySQL Integration**  
+  Transitioned from LocalStorage to a live MySQL database using PHP scripts (`api/` folder). This added data persistence, secure storage, and a structured backend for the application.
+- **Phase 3: Python Flask REST API & Admin Architecture**  
+  Implemented a full-fledged Python Flask backend (`server.py`) providing modern REST API capabilities. This phase fully centralized the database management (MySQL database named `lifelineqr`), added real administrative access, and structured the user base for scale.
 
 ---
 
-**Made with ❤️ for emergency medical support**
+## 🌟 Features
+
+### For Patients
+- **Profile Management**: Register and create a comprehensive medical profile.
+- **Critical Info Storage**: Store details like blood group, allergies, regular medications, and emergency contacts.
+- **Document Management**: Upload and manage medical documents (PDF/JPG/PNG) securely to the database.
+- **QR Code Handling**: Generate, download, and store a unique QR code ID directly linked to the user's medical profile.
+- **QR Medical Cards**: Merchandise module to view and order physical QR medical cards.
+
+### For Doctors
+- **Professional Registration**: Register as a medical professional, logging specialization and hospital data.
+- **Quick Search via QR**: Search and look up patients instantly by scanning/entering their unique QR code ID.
+- **Complete Profiling**: Gain read-only access to a patient's full medical profile and uploaded historical medical documents during treatments.
+
+### For Admins
+- **Admin Dashboard**: Specialized endpoints for super admins.
+- **Data Overview**: Keep track of total registered patients, doctors, and uploaded documents.
+- **User Management**: Have the authority to revoke/delete patients and malicious doctor accounts to maintain the platform's integrity.
+
+### For Public/First Responders
+- **Instant Emergency Access**: Scan a user's QR code to view critical survival information.
+- **Crucial Details Included**: Blood group, allergies, existing conditions, and emergency contacts are shown immediately.
+- **No Login Required**: Instant unauthenticated access during golden-hour emergencies.
+
+---
+
+## 🛠️ Technology Stack
+
+- **Frontend Core**: HTML5, CSS3, Vanilla JavaScript
+- **Backend Alternatives Included**:
+  - *Current Recommended Backend*: Python 3 (Flask, Flask-CORS)
+  - *Legacy API Backend*: PHP
+- **Database**: 
+  - *Current*: MySQL (`mysql-connector-python` or PHP PDO)
+  - *Legacy Prototype*: Browser LocalStorage / IndexedDB
+- **Third-Party Libraries**: QRCode.js (Frontend QR Generation)
+
+---
+
+## 📁 Project Structure
+
+```text
+basic/
+├── index.html              # Landing Page
+├── server.py               # Main Python Flask backend server and API endpoints
+├── database.sql            # Legacy LocalStorage initialization guide
+├── requirements.txt        # Python pip dependencies
+├── css/
+│   ├── global.css          # Global styling and CSS variables
+│   ├── components.css      # Reusable frontend components
+│   └── pages.css           # Highly-specific page styles
+├── js/
+│   ├── config.js           # Configuration and application constants
+│   ├── auth-api.js         # API-driven authentication logic
+│   ├── storage-api.js      # API-driven data interactions
+│   ├── auth.js & storage.js# Legacy LocalStorage versions 
+│   ├── validation.js       # Form validation engine
+│   ├── qr-handler.js       # QR code handling library integration
+│   ├── router.js           # Navigation system
+│   └── main.js             # Main application orchestrator
+├── api/                    # PHP backend variant (auth.php, users.php, records.php)
+└── pages/
+    ├── role-selection.html # Patient/Doctor choice
+    ├── register-patient.html
+    ├── register-doctor.html
+    ├── login.html
+    ├── patient-dashboard.html
+    ├── doctor-dashboard.html
+    └── ...                 # Merchandise, contact, and doctor-lists
+```
+
+---
+
+## 🚀 Setup & Installation Guide
+
+LifeLine QR gives you the flexibility to choose how you wish to run the backend engine.
+
+### Option 1: Python Flask Backend (Recommended)
+
+This is the most feature-rich execution path supporting the admin panel out of the box.
+
+1. **Prerequisites**: Make sure you have Python 3 and MySQL server installed.
+2. **Install Dependencies**:
+   ```bash
+   pip install flask flask-cors mysql-connector-python werkzeug
+   ```
+3. **Database Configuration**:
+   The Python server will auto-detect generic MySQL root passwords or an empty password.
+   If your MySQL requires a custom password, edit Line 23 of `server.py` (`_MYSQL_PASSWORDS_TO_TRY`).
+4. **Boot Server**:
+   ```bash
+   python server.py
+   ```
+   *The script will automatically connect to MySQL, create the `lifelineqr` database, and bootstrap all required tables!*
+5. **Start Client**: Simply open `index.html` in your web browser. Ensure the scripts in HTML point to the `*-api.js` variants.
+
+### Option 2: PHP Backend (XAMPP/WAMP)
+
+1. Move the `basic` folder into your `htdocs` (XAMPP) or `www` (WAMP) directory.
+2. Start Apache and MySQL from your control panel.
+3. Access `http://localhost/phpmyadmin` and create a database named `lifeline_qr`.
+4. Import the SQL file from the `database/schema.sql` (if available, or follow `DATABASE_SETUP.md`) or use phpMyAdmin to execute queries.
+5. In `api/config.php`, ensure database credentials (`DB_USER`, `DB_PASS`) match your setup.
+6. Open your browser to `http://localhost/basic/index.html`.
+
+### Option 3: LocalStorage (No Backend Prototype)
+
+1. If you wish to use the original UI without persisting to a live database, simply change your `.html` file inclusions:
+   - Change `<script src="../js/storage-api.js"></script>` to `<script src="../js/storage.js"></script>`.
+   - Change `<script src="../js/auth-api.js"></script>` to `<script src="../js/auth.js"></script>`.
+2. Open `index.html` in your browser. All interactions will be sandboxed to browser LocalStorage.
+
+---
+
+## 🔒 Security & Medical Data Notes
+
+⚠️ **Important**: This is primarily an educational/demonstration project.
+
+- For LocalStorage: Medical data is unencrypted on your browser.
+- For Databases: Files are uploaded and stored primarily as Base64 strings.
+- Passwords rely on secure hashing in the Python implementation (`werkzeug.security`).
+- For true production deployment, you must:
+  - Add SSL/HTTPS encryption.
+  - Implement HIPAA/medical data compliances.
+  - Separate static files/uploads directly to a file server or S3 bucket instead of the database.
+
+---
+
+## 📞 Support
+
+For any technical integration queries or emergency support regarding deployments:
+- **Email**: support@lifelineqr.com
+- **Phone**: +91 98765 43210
+
+**Developed by**: Track My Academy - Dev Ops  
