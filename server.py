@@ -31,6 +31,8 @@ _MYSQL_PASSWORDS_TO_TRY = [
 
 # Auto-detect the correct password
 _detected_password = None
+_detection_errors = []
+
 for _pwd in _MYSQL_PASSWORDS_TO_TRY:
     try:
         _test = mysql.connector.connect(
@@ -39,16 +41,36 @@ for _pwd in _MYSQL_PASSWORDS_TO_TRY:
         _test.close()
         _detected_password = _pwd
         break
-    except mysql.connector.Error:
+    except mysql.connector.Error as err:
+        _detection_errors.append((_pwd, str(err)))
         continue
 
 if _detected_password is None:
     print("=" * 60)
     print("  ERROR: Could not connect to MySQL with any known password!")
-    print("  Open server.py and add your MySQL root password to")
-    print("  the _MYSQL_PASSWORDS_TO_TRY list (around line 24).")
+    print(f"  We tried checking for user '{_MYSQL_USER}' but got these errors:")
+    for _pwd, err in _detection_errors:
+        display_pwd = "***" if _pwd else "(empty)"
+        # We explicitly show if MC9044PKM was attempted so the client can see exactly why it failed
+        if _pwd == 'MC9044PKM': display_pwd = 'MC9044PKM'
+        print(f"  - Password [{display_pwd}]: {err}")
     print("=" * 60)
-    _detected_password = ''  # fallback – will fail with a clear message at runtime
+    
+    import sys
+    if sys.stdin.isatty() or True:  # Attempt interactive prompt if possible
+        try:
+            print("\nLet's configure it manually.")
+            _MYSQL_USER = input(f"MySQL Username [{_MYSQL_USER}]: ").strip() or _MYSQL_USER
+            import getpass
+            _detected_password = getpass.getpass(f"MySQL Password for {_MYSQL_USER}: ")
+            
+            # verify immediately
+            _test = mysql.connector.connect(host=_MYSQL_HOST, user=_MYSQL_USER, password=_detected_password)
+            _test.close()
+            print("  ✓ Connected successfully!")
+        except Exception as e:
+            print(f"  ✗ Connection testing failed: {e}")
+            _detected_password = ''  # fallback – will fail later
 
 DB_CONFIG = {
     'host': _MYSQL_HOST,
