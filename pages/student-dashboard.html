@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Patient Dashboard - LifeLine QR</title>
+    <title>Student Dashboard - LifeLine QR</title>
 
     <link rel="stylesheet" href="../css/global.css">
     <link rel="stylesheet" href="../css/components.css">
@@ -22,7 +22,7 @@
                 LifeLine QR
             </a>
             <ul class="navbar-menu">
-                <li><a href="./patient-dashboard.html">Dashboard</a></li>
+                <li><a href="./student-dashboard.html">Dashboard</a></li>
                 <li><a href="./merchandise.html">Order QR Card</a></li>
                 <li><button class="btn btn-sm btn-danger" onclick="handleLogout()">Logout</button></li>
             </ul>
@@ -33,8 +33,8 @@
         <div class="container">
             <div class="dashboard-header">
                 <div>
-                    <h1 id="userGreeting">Patient Dashboard</h1>
-                    <p class="text-muted">Manage your medical information</p>
+                    <h1 id="userGreeting">Student Dashboard</h1>
+                    <p class="text-muted">Manage your health information</p>
                 </div>
             </div>
 
@@ -115,7 +115,7 @@
         // Get current user from session (set during login)
         const currentUser = JSON.parse(sessionStorage.getItem(CONFIG.STORAGE_KEYS.CURRENT_USER));
 
-        if (!currentUser || currentUser.role !== 'patient') {
+        if (!currentUser || currentUser.role !== 'student') {
             window.location.href = '/pages/login.html';
         }
 
@@ -124,10 +124,10 @@
 
         let qrCodeData = '';
 
-        // Load patient data from API
-        async function loadPatientData() {
+        // Load student data from API
+        async function loadStudentData() {
             try {
-                const res = await fetch(`http://localhost:5000/api/patient/${currentUser.id}`);
+                const res = await fetch(`http://localhost:5000/api/student/${currentUser.id}`);
                 const data = await res.json();
 
                 if (!data.success) {
@@ -135,7 +135,7 @@
                     return;
                 }
 
-                const p = data.patient;
+                const p = data.student;
 
                 // Display profile info
                 const profileDiv = document.getElementById('profileInfo');
@@ -148,6 +148,14 @@
                         <div class="info-item">
                             <div class="info-label">Age:</div>
                             <div class="info-value">${p.age} years</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Class:</div>
+                            <div class="info-value">${p.student_class || 'N/A'}${p.section ? ' - ' + p.section : ''}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Roll No:</div>
+                            <div class="info-value">${p.roll_number || 'N/A'}</div>
                         </div>
                         <div class="info-item">
                             <div class="info-label">Blood Group:</div>
@@ -170,13 +178,17 @@
                             <div class="info-value">${p.regular_medications || 'None'}</div>
                         </div>
                         <div class="info-item">
-                            <div class="info-label">Emergency Contact:</div>
+                            <div class="info-label">Parent / Guardian:</div>
+                            <div class="info-value">${p.parent_name || 'Not provided'}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Parent Contact:</div>
                             <div class="info-value">${p.emergency_contacts || 'Not provided'}</div>
                         </div>
                     </div>
                 `;
 
-                // Generate QR code from patient ID
+                // Generate QR code from student ID
                 qrCodeData = `LIFELINE-QR-${p.id}`;
                 document.getElementById('qrCodeId').textContent = qrCodeData;
                 document.getElementById('qrcode').innerHTML = '';
@@ -201,7 +213,7 @@
         // Load documents from API
         async function loadDocuments() {
             try {
-                const res = await fetch(`http://localhost:5000/api/patient/${currentUser.id}/documents`);
+                const res = await fetch(`http://localhost:5000/api/student/${currentUser.id}/documents`);
                 const data = await res.json();
                 const docList = document.getElementById('documentList');
 
@@ -276,10 +288,10 @@
         // Show edit profile modal
         async function showEditProfile() {
             try {
-                const res = await fetch(`http://localhost:5000/api/patient/${currentUser.id}`);
+                const res = await fetch(`http://localhost:5000/api/student/${currentUser.id}`);
                 const data = await res.json();
                 if (data.success) {
-                    const p = data.patient;
+                    const p = data.student;
                     document.getElementById('editAllergies').value = p.allergies || '';
                     document.getElementById('editConditions').value = p.medical_conditions || '';
                     document.getElementById('editMedications').value = p.regular_medications || '';
@@ -310,7 +322,7 @@
             };
 
             try {
-                const res = await fetch(`http://localhost:5000/api/patient/${currentUser.id}`, {
+                const res = await fetch(`http://localhost:5000/api/student/${currentUser.id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(updates)
@@ -320,7 +332,7 @@
                 if (data.success) {
                     Utils.showAlert('Profile updated successfully', 'success');
                     closeEditModal();
-                    loadPatientData();
+                    loadStudentData();
                 } else {
                     Utils.showAlert(data.error || 'Update failed', 'error');
                 }
@@ -342,7 +354,7 @@
         }
 
         // Initialize
-        loadPatientData();
+        loadStudentData();
     </script>
 </body>
 

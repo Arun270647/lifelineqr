@@ -7,20 +7,20 @@
 -- ===========================================
 
 -- TABLE: users
--- Stores both patient and doctor accounts
--- Fields: id, role (patient/doctor), name, age, email, password (hashed), createdAt, updatedAt
--- Patient-specific: bloodGroup, allergies, medicalConditions, regularMedications, address, emergencyContacts
+-- Stores both student and doctor accounts
+-- Fields: id, role (student/doctor), name, age, email, password (hashed), createdAt, updatedAt
+-- Student-specific: bloodGroup, allergies, medicalConditions, regularMedications, address, emergencyContacts
 -- Doctor-specific: specialization, experience, hospital, contactNumber, workingHours
 
 CREATE TABLE users (
     id VARCHAR(36) PRIMARY KEY,
-    role ENUM('patient', 'doctor') NOT NULL,
+    role ENUM('student', 'doctor') NOT NULL,
     name VARCHAR(255) NOT NULL,
     age INT NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL, -- Base64 hashed
     
-    -- Patient fields
+    -- Student fields
     bloodGroup VARCHAR(5),
     allergies TEXT,
     medicalConditions TEXT,
@@ -40,30 +40,30 @@ CREATE TABLE users (
 );
 
 -- TABLE: qr_mappings
--- Maps QR codes to patient IDs
--- Fields: id, patientId, qrCode, createdAt
+-- Maps QR codes to student IDs
+-- Fields: id, studentId, qrCode, createdAt
 
 CREATE TABLE qr_mappings (
     id VARCHAR(36) PRIMARY KEY,
-    patientId VARCHAR(36) NOT NULL,
+    studentId VARCHAR(36) NOT NULL,
     qrCode VARCHAR(36) UNIQUE NOT NULL,
     createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (patientId) REFERENCES users(id)
+    FOREIGN KEY (studentId) REFERENCES users(id)
 );
 
 -- TABLE: medical_records
 -- Stores uploaded medical documents
--- Fields: id, patientId, filename, fileType, fileData (base64), description, uploadedAt
+-- Fields: id, studentId, filename, fileType, fileData (base64), description, uploadedAt
 
 CREATE TABLE medical_records (
     id VARCHAR(36) PRIMARY KEY,
-    patientId VARCHAR(36) NOT NULL,
+    studentId VARCHAR(36) NOT NULL,
     filename VARCHAR(255) NOT NULL,
     fileType VARCHAR(50) NOT NULL,
     fileData LONGTEXT NOT NULL, -- Base64 encoded file
     description TEXT,
     uploadedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (patientId) REFERENCES users(id)
+    FOREIGN KEY (studentId) REFERENCES users(id)
 );
 
 -- TABLE: orders
@@ -91,12 +91,12 @@ CREATE TABLE orders (
 -- SAMPLE DATA (for testing)
 -- ===========================================
 
--- Insert Sample Patients
+-- Insert Sample Students
 INSERT INTO users (role, name, age, email, password, bloodGroup, allergies, medicalConditions, regularMedications, address, emergencyContacts)
 VALUES 
-('patient', 'Rahul Kumar', 28, 'rahul@example.com', 'UmFodWw= MTIzNDU2TGlmZUxpbmUgUVI=', 'O+', 'Penicillin', 'None', 'None', '123 MG Road, Bangalore', '9876543210'),
-('patient', 'Priya Sharma', 35, 'priya@example.com', 'UHJpeWExMjM0NTZMaWZlTGluZSBRUg==', 'A+', 'Peanuts', 'Diabetes Type 2', 'Metformin 500mg', '45 Brigade Road, Bangalore', '9876543211'),
-('patient', 'Amit Patel', 42, 'amit@example.com', 'QW1pdDEyMzQ1NkxpZmVMaW5lIFFS', 'B+', 'None', 'Hypertension', 'Amlodipine 5mg', '78 Koramangala, Bangalore', '9876543212');
+('student', 'Rahul Kumar', 28, 'rahul@example.com', 'UmFodWw= MTIzNDU2TGlmZUxpbmUgUVI=', 'O+', 'Penicillin', 'None', 'None', '123 MG Road, Bangalore', '9876543210'),
+('student', 'Priya Sharma', 35, 'priya@example.com', 'UHJpeWExMjM0NTZMaWZlTGluZSBRUg==', 'A+', 'Peanuts', 'Diabetes Type 2', 'Metformin 500mg', '45 Brigade Road, Bangalore', '9876543211'),
+('student', 'Amit Patel', 42, 'amit@example.com', 'QW1pdDEyMzQ1NkxpZmVMaW5lIFFS', 'B+', 'None', 'Hypertension', 'Amlodipine 5mg', '78 Koramangala, Bangalore', '9876543212');
 
 -- Insert Sample Doctors
 INSERT INTO users (role, name, age, email, password, specialization, experience, hospital, contactNumber, workingHours)
@@ -106,13 +106,13 @@ VALUES
 ('doctor', 'Dr. Vikram Singh', 52, 'vikram@example.com', 'RHIuVmlrcmFtMTIzNDU2TGlmZUxpbmUgUVI=', 'Orthopedic', 25, 'Manipal Hospital', '9876000003', '8:00 AM - 4:00 PM'),
 ('doctor', 'Dr. Kavita Iyer', 33, 'kavita@example.com', 'RHIuS2F2aXRhMTIzNDU2TGlmZUxpbmUgUVI=', 'Neurologist', 8, 'Columbia Asia', '9876000004', '11:00 AM - 7:00 PM');
 
--- Note: QR mappings are generated automatically when patients register
+-- Note: QR mappings are generated automatically when students register
 -- Sample QR codes would be inserted like:
-INSERT INTO qr_mappings (patientId, qrCode)
+INSERT INTO qr_mappings (studentId, qrCode)
 VALUES 
-('patient-id-1', 'qr-code-uuid-1'),
-('patient-id-2', 'qr-code-uuid-2'),
-('patient-id-3', 'qr-code-uuid-3');
+('student-id-1', 'qr-code-uuid-1'),
+('student-id-2', 'qr-code-uuid-2'),
+('student-id-3', 'qr-code-uuid-3');
 
 -- ===========================================
 -- USAGE INSTRUCTIONS
@@ -146,9 +146,9 @@ LOCALSTORAGE IMPLEMENTATION:
    Open index.html in browser
    Open console and run the following JavaScript:
 
-   // Add a demo patient
-   const demoPatient = {
-       role: 'patient',
+   // Add a demo student
+   const demoStudent = {
+       role: 'student',
        name: 'John Doe',
        age: 30,
        email: 'john@demo.com',
@@ -160,8 +160,8 @@ LOCALSTORAGE IMPLEMENTATION:
        address: '123 Demo Street',
        emergencyContacts: '1234567890'
    };
-   const result = UserStorage.createUser(demoPatient);
-   console.log('Demo patient created:', result);
+   const result = UserStorage.createUser(demoStudent);
+   console.log('Demo student created:', result);
 
    // Add a demo doctor
    const demoDoctor = {

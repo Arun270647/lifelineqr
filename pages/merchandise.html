@@ -88,7 +88,7 @@
             <div class="modal-body">
                 <div id="loginRequired" class="alert alert-warning">
                     <strong>Login Required</strong><br>
-                    You need to <a href="./login.html">login as a patient</a> to order a QR card.
+                    You need to <a href="./login.html">login as a student</a> to order a QR card.
                 </div>
 
                 <form id="orderForm" class="hidden">
@@ -153,8 +153,8 @@
             // Reset modal
             orderSuccess.classList.add('hidden');
 
-            // Check if user is logged in as patient
-            if (!Auth.isLoggedIn() || !Auth.isRole(CONFIG.ROLES.PATIENT)) {
+            // Check if user is logged in as student
+            if (!Auth.isLoggedIn() || !Auth.isRole(CONFIG.ROLES.STUDENT)) {
                 loginRequired.classList.remove('hidden');
                 orderForm.classList.add('hidden');
             } else {
@@ -193,7 +193,7 @@
             }
 
             const user = Auth.getCurrentUser();
-            const qrMapping = QRStorage.getQRByPatient(user.id);
+            const qrMapping = QRStorage.getQRByStudent(user.id);
 
             const orderData = {
                 userId: user.id,

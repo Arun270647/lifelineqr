@@ -80,10 +80,10 @@ You need to change the script references in all HTML files:
 ```
 
 **Files to update:**
-- pages/register-patient.html
+- pages/register-student.html
 - pages/register-doctor.html
 - pages/login.html
-- pages/patient-dashboard.html
+- pages/student-dashboard.html
 - pages/doctor-dashboard.html
 - pages/doctors-list.html
 - pages/merchandise.html
@@ -122,7 +122,7 @@ fetch('http://localhost/basic/api/users.php?role=doctor')
    http://localhost/basic/index.html
    ```
 
-2. **Register a patient:**
+2. **Register a student:**
    - Data will be stored in MySQL `users` table
    - QR code mapping in `qr_mappings` table
 
@@ -138,9 +138,9 @@ fetch('http://localhost/basic/api/users.php?role=doctor')
 
 After setup, you'll have these tables:
 
-1. **users** - All patients and doctors
-2. **qr_mappings** - QR code to patient mapping
-3. **medical_records** - Patient document metadata
+1. **users** - All students and doctors
+2. **qr_mappings** - QR code to student mapping
+3. **medical_records** - Student document metadata
 4. **orders** - Merchandise orders
 5. **feedback** - Contact form submissions
 
@@ -204,7 +204,7 @@ SELECT * FROM users;
 ```sql
 SELECT u.name, qm.qr_code 
 FROM users u 
-JOIN qr_mappings qm ON u.id = qm.patient_id;
+JOIN qr_mappings qm ON u.id = qm.student_id;
 ```
 
 **Delete all data:**
@@ -222,11 +222,11 @@ TRUNCATE TABLE feedback;
 
 After setup:
 
-1. ✅ Register a test patient
+1. ✅ Register a test student
 2. ✅ Check database to see if data is saved
-3. ✅ Login with patient credentials
+3. ✅ Login with student credentials
 4. ✅ Register a doctor
-5. ✅ Test doctor searching for patient by QR
+5. ✅ Test doctor searching for student by QR
 
 ---
 

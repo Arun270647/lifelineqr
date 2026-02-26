@@ -34,8 +34,8 @@ const Router = {
             return;
         }
 
-        if (user.role === CONFIG.ROLES.PATIENT) {
-            this.navigate('./pages/patient-dashboard.html');
+        if (user.role === CONFIG.ROLES.STUDENT) {
+            this.navigate('./pages/student-dashboard.html');
         } else if (user.role === CONFIG.ROLES.DOCTOR) {
             this.navigate('./pages/doctor-dashboard.html');
         } else {

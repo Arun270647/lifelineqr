@@ -77,48 +77,48 @@ function setupModals() {
     });
 }
 
-// Format patient info for display
-function formatPatientInfo(patient) {
+// Format student info for display
+function formatStudentInfo(student) {
     return `
         <div class="info-grid">
             <div class="info-item">
                 <div class="info-label">Name:</div>
-                <div class="info-value">${patient.name}</div>
+                <div class="info-value">${student.name}</div>
             </div>
             <div class="info-item">
                 <div class="info-label">Age:</div>
-                <div class="info-value">${patient.age} years</div>
+                <div class="info-value">${student.age} years</div>
             </div>
             <div class="info-item">
                 <div class="info-label">Blood Group:</div>
-                <div class="info-value"><span class="badge badge-danger">${patient.bloodGroup}</span></div>
+                <div class="info-value"><span class="badge badge-danger">${student.bloodGroup}</span></div>
             </div>
             <div class="info-item">
                 <div class="info-label">Allergies:</div>
-                <div class="info-value">${patient.allergies || 'None'}</div>
+                <div class="info-value">${student.allergies || 'None'}</div>
             </div>
             <div class="info-item">
                 <div class="info-label">Medical Conditions:</div>
-                <div class="info-value">${patient.medicalConditions || 'None'}</div>
+                <div class="info-value">${student.medicalConditions || 'None'}</div>
             </div>
             <div class="info-item">
                 <div class="info-label">Regular Medications:</div>
-                <div class="info-value">${patient.regularMedications || 'None'}</div>
+                <div class="info-value">${student.regularMedications || 'None'}</div>
             </div>
             <div class="info-item">
                 <div class="info-label">Emergency Contacts:</div>
-                <div class="info-value">${patient.emergencyContacts || 'Not provided'}</div>
+                <div class="info-value">${student.emergencyContacts || 'Not provided'}</div>
             </div>
             <div class="info-item">
                 <div class="info-label">Address:</div>
-                <div class="info-value">${patient.address || 'Not provided'}</div>
+                <div class="info-value">${student.address || 'Not provided'}</div>
             </div>
         </div>
     `;
 }
 
 // Format emergency info (limited)
-function formatEmergencyInfo(patient) {
+function formatEmergencyInfo(student) {
     return `
         <div class="alert alert-warning">
             <strong>Emergency Information Only</strong><br>
@@ -127,23 +127,23 @@ function formatEmergencyInfo(patient) {
         <div class="info-grid">
             <div class="info-item">
                 <div class="info-label">Name:</div>
-                <div class="info-value">${patient.name}</div>
+                <div class="info-value">${student.name}</div>
             </div>
             <div class="info-item">
                 <div class="info-label">Age:</div>
-                <div class="info-value">${patient.age} years</div>
+                <div class="info-value">${student.age} years</div>
             </div>
             <div class="info-item">
                 <div class="info-label">Blood Group:</div>
-                <div class="info-value"><span class="badge badge-danger">${patient.bloodGroup}</span></div>
+                <div class="info-value"><span class="badge badge-danger">${student.bloodGroup}</span></div>
             </div>
             <div class="info-item">
                 <div class="info-label">Allergies:</div>
-                <div class="info-value">${patient.allergies || 'None'}</div>
+                <div class="info-value">${student.allergies || 'None'}</div>
             </div>
             <div class="info-item">
                 <div class="info-label">Emergency Contacts:</div>
-                <div class="info-value">${patient.emergencyContacts || 'Not provided'}</div>
+                <div class="info-value">${student.emergencyContacts || 'Not provided'}</div>
             </div>
         </div>
     `;
@@ -151,5 +151,5 @@ function formatEmergencyInfo(patient) {
 
 // Export functions for global access
 window.handleLogout = handleLogout;
-window.formatPatientInfo = formatPatientInfo;
+window.formatStudentInfo = formatStudentInfo;
 window.formatEmergencyInfo = formatEmergencyInfo;

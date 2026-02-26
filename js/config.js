@@ -15,7 +15,7 @@ const CONFIG = {
 
     // User Roles
     ROLES: {
-        PATIENT: 'patient',
+        STUDENT: 'student',
         DOCTOR: 'doctor'
     },
 

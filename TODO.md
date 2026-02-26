@@ -21,9 +21,9 @@
 ## 🗄️ Data Storage Layer
 
 ### LocalStorage/IndexedDB Setup
-- [ ] Design database schema for Users table (patients and doctors)
+- [ ] Design database schema for Users table (students and doctors)
 - [ ] Design database schema for Medical records
-- [ ] Design database schema for QR-to-patient mapping
+- [ ] Design database schema for QR-to-student mapping
 - [ ] Design database schema for Orders (merchandise)
 - [ ] Implement data storage utility functions
 - [ ] Create CRUD operations for user data
@@ -38,8 +38,8 @@
 ## 🔐 Authentication & User Management
 
 ### User Registration System
-- [ ] Create role selection logic (Doctor/Patient)
-- [ ] Implement patient registration form validation
+- [ ] Create role selection logic (Doctor/Student)
+- [ ] Implement student registration form validation
 - [ ] Implement doctor registration form validation
 - [ ] Create password hashing/encryption mechanism
 - [ ] Generate temporary passwords for doctors
@@ -50,7 +50,7 @@
 - [ ] Create login form validation
 - [ ] Implement authentication logic
 - [ ] Create session management system
-- [ ] Implement role-based redirection (Patient/Doctor dashboards)
+- [ ] Implement role-based redirection (Student/Doctor dashboards)
 - [ ] Add "Remember Me" functionality (optional)
 - [ ] Create logout functionality
 
@@ -66,9 +66,9 @@
 
 ### QR Generation & Management
 - [ ] Research and integrate QR code generation library
-- [ ] Create unique QR code ID generator for each patient
-- [ ] Implement QR code generation on patient registration
-- [ ] Store QR-to-patient mapping in database
+- [ ] Create unique QR code ID generator for each student
+- [ ] Implement QR code generation on student registration
+- [ ] Store QR-to-student mapping in database
 - [ ] Create QR code display functionality
 - [ ] Add download QR code feature
 - [ ] Implement QR code scanning/input functionality
@@ -110,7 +110,7 @@
 
 - [ ] Create role selection page HTML
 - [ ] Design "Register as Doctor" button
-- [ ] Design "Register as Patient" button
+- [ ] Design "Register as Student" button
 - [ ] Style page with medical theme
 - [ ] Implement navigation to respective registration pages
 - [ ] Add back to home button
@@ -142,10 +142,10 @@
 
 ---
 
-## 🏥 Page 4: Patient Registration Page
+## 🏥 Page 4: Student Registration Page
 
 ### Form Implementation
-- [ ] Create patient registration form HTML
+- [ ] Create student registration form HTML
 - [ ] Add input field: Name
 - [ ] Add input field: Age
 - [ ] Add input field: Blood group (dropdown)
@@ -161,9 +161,9 @@
 - [ ] Implement form validation for all fields
 - [ ] Add Submit button with validation trigger
 - [ ] Add Back button to role selection
-- [ ] Save patient details to LocalStorage
-- [ ] Generate unique QR code for patient
-- [ ] Link QR code to patient record
+- [ ] Save student details to LocalStorage
+- [ ] Generate unique QR code for student
+- [ ] Link QR code to student record
 - [ ] Show success message with QR code preview
 - [ ] Redirect to login page after successful registration
 
@@ -179,18 +179,18 @@
 - [ ] Add "Forgot Password" link
 - [ ] Create login button
 - [ ] Implement authentication check
-- [ ] Redirect to Patient Dashboard if patient
+- [ ] Redirect to Student Dashboard if student
 - [ ] Redirect to Doctor Dashboard if doctor
 - [ ] Show error message for invalid credentials
 - [ ] Add "Back to Home" link
 
 ---
 
-## 🧑‍💼 Page 6: Patient Dashboard
+## 🧑‍💼 Page 6: Student Dashboard
 
 ### Profile Management
-- [ ] Create patient dashboard HTML structure
-- [ ] Display patient personal information
+- [ ] Create student dashboard HTML structure
+- [ ] Display student personal information
 - [ ] Implement edit personal information functionality
 - [ ] Add save changes button
 - [ ] Validate updated information
@@ -211,7 +211,7 @@
 
 ### Merchandise
 - [ ] Add "Order QR Card" button
-- [ ] Link to merchandise page with pre-filled patient QR
+- [ ] Link to merchandise page with pre-filled student QR
 
 ### Navigation
 - [ ] Add logout button
@@ -222,25 +222,25 @@
 
 ## 👨‍⚕️ Page 7: Doctor Dashboard
 
-### Patient Lookup
+### Student Lookup
 - [ ] Create doctor dashboard HTML structure
 - [ ] Add QR code ID input field
 - [ ] Implement QR code scanning simulation
 - [ ] Add search/submit button
 - [ ] Validate QR code ID
 
-### Patient Information Display
-- [ ] Display patient full medical profile
-- [ ] Show patient basic details
+### Student Information Display
+- [ ] Display student full medical profile
+- [ ] Show student basic details
 - [ ] Display blood group prominently
 - [ ] Show allergies section
 - [ ] Display medical conditions
 - [ ] Show regular medications
 - [ ] Display emergency contacts
-- [ ] Show patient address
+- [ ] Show student address
 
 ### Medical Records Access
-- [ ] Display list of patient's uploaded documents
+- [ ] Display list of student's uploaded documents
 - [ ] Implement document preview functionality
 - [ ] Add document download option
 - [ ] Show document descriptions
@@ -281,7 +281,7 @@
 ### Order Form
 - [ ] Create order form
 - [ ] Add delivery address fields
-- [ ] Add QR code selection (for logged-in patients)
+- [ ] Add QR code selection (for logged-in students)
 - [ ] Add quantity selector
 - [ ] Implement form validation
 
@@ -386,7 +386,7 @@
 ## ✅ Testing & Quality Assurance
 
 ### Functional Testing
-- [ ] Test patient registration flow
+- [ ] Test student registration flow
 - [ ] Test doctor registration flow
 - [ ] Test login/logout functionality
 - [ ] Test password reset functionality
@@ -426,7 +426,7 @@
 
 - [ ] Write comprehensive README.md
 - [ ] Document project structure
-- [ ] Create user guide for patients
+- [ ] Create user guide for students
 - [ ] Create user guide for doctors
 - [ ] Document code with comments
 - [ ] Create setup instructions
@@ -459,7 +459,7 @@
 - [ ] Create admin panel for user management
 - [ ] Add email notifications (simulated)
 - [ ] Implement search functionality on doctor dashboard
-- [ ] Add patient appointment history
+- [ ] Add student appointment history
 - [ ] Create analytics dashboard
 
 ---
@@ -469,7 +469,7 @@
 - [ ] **Milestone 1:** Project setup and data layer complete
 - [ ] **Milestone 2:** Authentication system working
 - [ ] **Milestone 3:** All pages created with basic HTML/CSS
-- [ ] **Milestone 4:** Patient flow fully functional
+- [ ] **Milestone 4:** Student flow fully functional
 - [ ] **Milestone 5:** Doctor flow fully functional
 - [ ] **Milestone 6:** QR system integrated and working
 - [ ] **Milestone 7:** UI polished and consistent

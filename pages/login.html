@@ -104,11 +104,11 @@
                     return;
                 }
 
-                // ── Step 2: Try patient then doctor ──
+                // ── Step 2: Try student then doctor ──
                 let result = null;
                 let role = '';
 
-                for (const r of ['patient', 'doctor']) {
+                for (const r of ['student', 'doctor']) {
                     const res = await fetch('http://localhost:5000/api/login', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -122,8 +122,8 @@
                     sessionStorage.setItem(CONFIG.STORAGE_KEYS.CURRENT_USER, JSON.stringify(result.user));
                     Utils.showAlert('Login successful! Redirecting...', 'success');
                     setTimeout(() => {
-                        window.location.href = role === 'patient'
-                            ? '/pages/patient-dashboard.html'
+                        window.location.href = role === 'student'
+                            ? '/pages/student-dashboard.html'
                             : '/pages/doctor-dashboard.html';
                     }, 1000);
                 } else {

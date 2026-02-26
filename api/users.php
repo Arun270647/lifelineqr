@@ -51,14 +51,14 @@ switch ($method) {
         $password = sanitize($conn, $data['password']); // Already hashed from frontend
         
         // Build insert query based on role
-        if ($role === 'patient') {
+        if ($role === 'student') {
             $sql = "INSERT INTO users (id, role, name, age, email, password, blood_group, allergies, 
                     medical_conditions, regular_medications, address, emergency_contacts) 
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             
             $stmt = $conn->prepare($sql);
             if (!$stmt) {
-                echo json_encode(['success' => false, 'error' => 'DB prepare error (patient): ' . $conn->error]);
+                echo json_encode(['success' => false, 'error' => 'DB prepare error (student): ' . $conn->error]);
                 exit();
             }
             $bloodGroup = sanitize($conn, $data['bloodGroup'] ?? '');
@@ -95,11 +95,11 @@ switch ($method) {
         }
         
         if ($stmt->execute()) {
-            // If patient, create QR mapping
-            if ($role === 'patient') {
+            // If student, create QR mapping
+            if ($role === 'student') {
                 $qrCode = generateUUID();
                 $qrId = generateUUID();
-                $qrSql = "INSERT INTO qr_mappings (id, patient_id, qr_code) VALUES (?, ?, ?)";
+                $qrSql = "INSERT INTO qr_mappings (id, student_id, qr_code) VALUES (?, ?, ?)";
                 $qrStmt = $conn->prepare($qrSql);
                 $qrStmt->bind_param('sss', $qrId, $userId, $qrCode);
                 $qrStmt->execute();

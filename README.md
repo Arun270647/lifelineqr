@@ -1,6 +1,6 @@
 # LifeLine QR - Emergency Medical Information System
 
-A web-based emergency medical information system that uses QR codes to provide instant access to patient medical data during emergencies.
+A web-based emergency medical information system that uses QR codes to provide instant access to student medical data during emergencies.
 
 ## 📈 Project Journey & Evolution
 
@@ -17,7 +17,7 @@ Built from scratch, LifeLine QR has evolved significantly to accommodate robust 
 
 ## 🌟 Features
 
-### For Patients
+### For Students
 - **Profile Management**: Register and create a comprehensive medical profile.
 - **Critical Info Storage**: Store details like blood group, allergies, regular medications, and emergency contacts.
 - **Document Management**: Upload and manage medical documents (PDF/JPG/PNG) securely to the database.
@@ -26,13 +26,13 @@ Built from scratch, LifeLine QR has evolved significantly to accommodate robust 
 
 ### For Doctors
 - **Professional Registration**: Register as a medical professional, logging specialization and hospital data.
-- **Quick Search via QR**: Search and look up patients instantly by scanning/entering their unique QR code ID.
-- **Complete Profiling**: Gain read-only access to a patient's full medical profile and uploaded historical medical documents during treatments.
+- **Quick Search via QR**: Search and look up students instantly by scanning/entering their unique QR code ID.
+- **Complete Profiling**: Gain read-only access to a student's full medical profile and uploaded historical medical documents during treatments.
 
 ### For Admins
 - **Admin Dashboard**: Specialized endpoints for super admins.
-- **Data Overview**: Keep track of total registered patients, doctors, and uploaded documents.
-- **User Management**: Have the authority to revoke/delete patients and malicious doctor accounts to maintain the platform's integrity.
+- **Data Overview**: Keep track of total registered students, doctors, and uploaded documents.
+- **User Management**: Have the authority to revoke/delete students and malicious doctor accounts to maintain the platform's integrity.
 
 ### For Public/First Responders
 - **Instant Emergency Access**: Scan a user's QR code to view critical survival information.
@@ -77,11 +77,11 @@ basic/
 │   └── main.js             # Main application orchestrator
 ├── api/                    # PHP backend variant (auth.php, users.php, records.php)
 └── pages/
-    ├── role-selection.html # Patient/Doctor choice
-    ├── register-patient.html
+    ├── role-selection.html # Student/Doctor choice
+    ├── register-student.html
     ├── register-doctor.html
     ├── login.html
-    ├── patient-dashboard.html
+    ├── student-dashboard.html
     ├── doctor-dashboard.html
     └── ...                 # Merchandise, contact, and doctor-lists
 ```

@@ -23,22 +23,22 @@ const QRHandler = {
         });
     },
 
-    // Get patient QR code
-    getPatientQRCode(patientId) {
-        const mapping = QRStorage.getQRByPatient(patientId);
+    // Get student QR code
+    getStudentQRCode(studentId) {
+        const mapping = QRStorage.getQRByStudent(studentId);
         return mapping ? mapping.qrCode : null;
     },
 
-    // Get patient info from QR code
-    getPatientFromQR(qrCode) {
-        return QRStorage.getPatientByQR(qrCode);
+    // Get student info from QR code
+    getStudentFromQR(qrCode) {
+        return QRStorage.getStudentByQR(qrCode);
     },
 
-    // Get patient data based on access level
-    getPatientData(qrCode, isDoctor = false) {
-        const patient = this.getPatientFromQR(qrCode);
+    // Get student data based on access level
+    getStudentData(qrCode, isDoctor = false) {
+        const student = this.getStudentFromQR(qrCode);
 
-        if (!patient) {
+        if (!student) {
             return {
                 success: false,
                 error: 'Invalid QR code'
@@ -49,7 +49,7 @@ const QRHandler = {
         if (!isDoctor) {
             const emergencyData = {};
             CONFIG.EMERGENCY_FIELDS.forEach(field => {
-                emergencyData[field] = patient[field];
+                emergencyData[field] = student[field];
             });
 
             return {
@@ -60,11 +60,11 @@ const QRHandler = {
         }
 
         // Doctor has full access (except password)
-        const fullData = { ...patient };
+        const fullData = { ...student };
         delete fullData.password;
 
         // Get medical records
-        const records = MedicalRecordStorage.getPatientRecords(patient.id);
+        const records = MedicalRecordStorage.getStudentRecords(student.id);
 
         return {
             success: true,
@@ -77,7 +77,7 @@ const QRHandler = {
     // Generate QR code URL
     generateQRURL(qrCode) {
         const baseURL = window.location.origin;
-        return `${baseURL}/pages/view-patient.html?qr=${qrCode}`;
+        return `${baseURL}/pages/view-student.html?qr=${qrCode}`;
     },
 
     // Download QR code as image

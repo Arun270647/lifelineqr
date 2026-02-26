@@ -67,9 +67,9 @@ const UserStorage = {
         return result.success ? result.users : [];
     },
 
-    // Get all patients
-    async getAllPatients() {
-        const result = await Storage.apiCall('users.php?role=patient');
+    // Get all students
+    async getAllStudents() {
+        const result = await Storage.apiCall('users.php?role=student');
         return result.success ? result.users : [];
     }
 };
@@ -77,17 +77,17 @@ const UserStorage = {
 // Medical Records Storage
 const MedicalRecordStorage = {
     // Add medical record
-    async addRecord(patientId, record) {
-        record.patientId = patientId;
+    async addRecord(studentId, record) {
+        record.studentId = studentId;
         // For file data, we'll still use LocalStorage or base64 in file_path field
         record.filePath = record.fileData || ''; // Store base64 data
         const result = await Storage.apiCall('records.php', 'POST', record);
         return result.success ? result.record : null;
     },
 
-    // Get patient's records
-    async getPatientRecords(patientId) {
-        const result = await Storage.apiCall(`records.php?patientId=${encodeURIComponent(patientId)}`);
+    // Get student's records
+    async getStudentRecords(studentId) {
+        const result = await Storage.apiCall(`records.php?studentId=${encodeURIComponent(studentId)}`);
         return result.success ? result.records : [];
     },
 
@@ -102,18 +102,18 @@ const MedicalRecordStorage = {
 const QRStorage = {
     // QR mapping is created automatically during user registration in users.php
 
-    // Get patient by QR code
-    async getPatientByQR(qrCode) {
+    // Get student by QR code
+    async getStudentByQR(qrCode) {
         const result = await Storage.apiCall('qr.php', 'POST', {
-            action: 'getPatient',
+            action: 'getStudent',
             qrCode: qrCode
         });
-        return result.success ? result.patient : null;
+        return result.success ? result.student : null;
     },
 
-    // Get QR by patient ID
-    async getQRByPatient(patientId) {
-        const result = await Storage.apiCall(`qr.php?patientId=${encodeURIComponent(patientId)}`);
+    // Get QR by student ID
+    async getQRByStudent(studentId) {
+        const result = await Storage.apiCall(`qr.php?studentId=${encodeURIComponent(studentId)}`);
         return result.success ? result.mapping : null;
     }
 };

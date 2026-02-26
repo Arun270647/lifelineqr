@@ -18,8 +18,8 @@ const Auth = {
         const result = UserStorage.createUser(userData);
 
         if (result.success) {
-            // If patient, create QR code
-            if (userData.role === CONFIG.ROLES.PATIENT) {
+            // If student, create QR code
+            if (userData.role === CONFIG.ROLES.STUDENT) {
                 const qrCode = Utils.generateId();
                 QRStorage.createMapping(result.user.id, qrCode);
             }

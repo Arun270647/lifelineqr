@@ -32,14 +32,14 @@
             <div class="dashboard-header">
                 <div>
                     <h1 id="userGreeting">Doctor Dashboard</h1>
-                    <p class="text-muted">Access patient medical information</p>
+                    <p class="text-muted">Access student medical information</p>
                 </div>
             </div>
 
             <!-- QR Lookup -->
             <div class="card">
-                <h3>Patient Lookup</h3>
-                <p>Enter the patient's QR code ID to view their medical information</p>
+                <h3>Student Lookup</h3>
+                <p>Enter the student's QR code ID to view their medical information</p>
                 <div class="form-group">
                     <label class="form-label">QR Code ID</label>
                     <div style="display: flex; gap: 10px;">
@@ -49,21 +49,36 @@
                         </button>
                     </div>
                 </div>
-                <button class="btn btn-primary" onclick="lookupPatient()">Search Patient</button>
+                <button class="btn btn-primary" onclick="lookupStudent()">Search Student</button>
             </div>
 
-            <!-- Patient Info Display -->
-            <div id="patientInfoCard" class="card hidden">
+            <!-- Student Info Display -->
+            <div id="studentInfoCard" class="card hidden">
                 <div class="card-header">
-                    <h3>Patient Information</h3>
-                    <button class="btn btn-sm btn-secondary" onclick="clearPatientInfo()">Clear</button>
+                    <h3>Student Information</h3>
+                    <button class="btn btn-sm btn-secondary" onclick="clearStudentInfo()">Clear</button>
                 </div>
-                <div id="patientInfo"></div>
+                <div id="studentInfo"></div>
 
                 <!-- Medical Records -->
                 <div id="medicalRecordsSection" class="mt-4 hidden">
                     <h4 class="mb-3">Medical Documents</h4>
                     <ul id="medicalRecordsList" class="document-list"></ul>
+                </div>
+
+                <!-- Upload Document for Student -->
+                <div id="uploadSection" class="mt-4 hidden">
+                    <h4 class="mb-3">Upload Document for Student</h4>
+                    <div class="form-group">
+                        <label class="form-label">Select Document</label>
+                        <input type="file" id="docFileInput" class="form-input" accept=".pdf,.jpg,.jpeg,.png">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <input type="text" id="docDescription" class="form-input"
+                            placeholder="e.g., Health Checkup Report, Vaccination Record">
+                    </div>
+                    <button class="btn btn-success" onclick="uploadDocForStudent()">📄 Upload Document</button>
                 </div>
             </div>
         </div>
@@ -77,7 +92,7 @@
             <!-- Header -->
             <div style="display:flex; align-items:center; justify-content:space-between;
                         padding: 14px 18px; background:#111;">
-                <h3 style="margin:0; color:#fff; font-size:17px; font-weight:600;">📷 Scan Patient QR</h3>
+                <h3 style="margin:0; color:#fff; font-size:17px; font-weight:600;">📷 Scan Student QR</h3>
                 <div style="display:flex; gap:10px; align-items:center;">
                     <button id="torchBtn" onclick="toggleTorch()" title="Toggle flashlight" style="background:rgba(255,255,255,0.12); border:none; border-radius:50%;
                                width:36px; height:36px; font-size:18px; cursor:pointer;
@@ -178,6 +193,7 @@
     <script>
         let html5QrCode;
         let torchOn = false;
+        let currentStudentId = null; // Track the currently viewed student
 
         function startQRScanner() {
             document.getElementById('scannerModal').classList.add('active');
@@ -190,23 +206,19 @@
             }
             html5QrCode = new Html5Qrcode('reader');
 
-            // ── GPay-style config ──────────────────────────────────────────
-            // qrbox as a function → covers 85 % of the shorter dimension.
-            // The whole visible frame is processed; the box is just a visual guide.
             const qrboxFn = (w, h) => {
                 const side = Math.floor(Math.min(w, h) * 0.85);
                 return { width: side, height: side };
             };
 
             const config = {
-                fps: 30,          // 30 frames/sec for fast detection
-                qrbox: qrboxFn    // 85% of frame — no need to "fit" the QR perfectly
+                fps: 30,
+                qrbox: qrboxFn
             };
 
             html5QrCode
                 .start({ facingMode: 'environment' }, config, onScanSuccess)
                 .then(() => {
-                    // Position the overlay brackets to match the actual qrbox
                     positionOverlay();
                 })
                 .catch(err => {
@@ -218,7 +230,6 @@
 
         // Align the decorative bracket box over the real scan region
         function positionOverlay() {
-            // html5-qrcode paints a shaded region; we simply mirror it for the brackets
             setTimeout(() => {
                 const readerEl = document.getElementById('reader');
                 const video = readerEl.querySelector('video');
@@ -256,7 +267,7 @@
         }
 
         function onScanSuccess(decodedText) {
-            // Flash green to confirm scan — like GPay
+            // Flash green to confirm scan
             const bb = document.getElementById('bracketBox');
             if (bb) {
                 bb.querySelectorAll('div').forEach(d => d.style.borderColor = '#ffffff');
@@ -266,7 +277,7 @@
             }
             document.getElementById('qrInput').value = decodedText;
             stopQRScanner();
-            setTimeout(() => lookupPatient(), 300);
+            setTimeout(() => lookupStudent(), 300);
         }
 
         // Torch / flashlight toggle
@@ -300,11 +311,27 @@
             window.location.href = '/pages/login.html';
         }
 
-        // Set greeting
-        document.getElementById('userGreeting').textContent = `Welcome back, ${currentUser.name}!`;
+        if (!currentUser.is_verified) {
+            document.querySelector('.dashboard .container').innerHTML = `
+                <div class="dashboard-header">
+                    <div>
+                        <h1 id="userGreeting">Welcome back, ${currentUser.name}!</h1>
+                        <p class="text-muted">Account Verification Pending</p>
+                    </div>
+                </div>
+                <div class="card" style="text-align: center; padding: 40px;">
+                    <div style="font-size: 48px; margin-bottom: 20px;">⏳</div>
+                    <h3>Verification Pending</h3>
+                    <p style="color: var(--text-secondary); margin-top: 10px;">Your account is currently under review by the administrator. Once verified, you will be able to scan QR codes and access student medical records.</p>
+                </div>
+            `;
+        } else {
+            // Set greeting for verified users
+            document.getElementById('userGreeting').textContent = `Welcome back, ${currentUser.name}!`;
+        }
 
-        // Lookup patient by QR code — handles all QR formats
-        async function lookupPatient() {
+        // Lookup student by QR code — handles all QR formats
+        async function lookupStudent() {
             const qrCode = document.getElementById('qrInput').value.trim();
 
             if (!qrCode) {
@@ -312,31 +339,31 @@
                 return;
             }
 
-            let patientId = null;
+            let studentId = null;
 
             // Format 1: LIFELINE-QR-{id}  (standard format)
             const stdMatch = qrCode.match(/LIFELINE-QR-(\d+)/i);
-            if (stdMatch) patientId = stdMatch[1];
+            if (stdMatch) studentId = stdMatch[1];
 
             // Format 2: URL containing ?id={id} or &id={id}
-            if (!patientId) {
+            if (!studentId) {
                 const urlMatch = qrCode.match(/[?&]id=(\d+)/i);
-                if (urlMatch) patientId = urlMatch[1];
+                if (urlMatch) studentId = urlMatch[1];
             }
 
             // Format 3: bare numeric ID typed manually (e.g. "4")
-            if (!patientId && /^\d+$/.test(qrCode)) {
-                patientId = qrCode;
+            if (!studentId && /^\d+$/.test(qrCode)) {
+                studentId = qrCode;
             }
 
             // Format 4: old embedded plain-text QR (EMERGENCY MEDICAL INFO block)
-            if (!patientId && (qrCode.includes('EMERGENCY MEDICAL INFO') || qrCode.includes('Name:'))) {
+            if (!studentId && (qrCode.includes('EMERGENCY MEDICAL INFO') || qrCode.includes('Name:'))) {
                 const extract = (label) => {
                     const re = new RegExp(label + ':\\s*(.+)', 'i');
                     const m = qrCode.match(re);
                     return m ? m[1].trim() : 'N/A';
                 };
-                displayPatientInfo({
+                displayStudentInfo({
                     name: extract('Name'),
                     age: extract('Age'),
                     blood_group: extract('Blood Group'),
@@ -347,32 +374,33 @@
                     address: extract('Address')
                 });
                 displayMedicalRecords([]);
-                Utils.showAlert('Patient info loaded from QR text (documents not available for this format).', 'info');
+                Utils.showAlert('Student info loaded from QR text (documents not available for this format).', 'info');
                 return;
             }
 
-            if (!patientId) {
+            if (!studentId) {
                 Utils.showAlert('Unrecognized QR code format. Please scan a valid LifeLine QR code.', 'error');
-                clearPatientInfo();
+                clearStudentInfo();
                 return;
             }
 
             try {
-                const [patientRes, docsRes] = await Promise.all([
-                    fetch(`http://localhost:5000/api/patient/${patientId}`),
-                    fetch(`http://localhost:5000/api/patient/${patientId}/documents`)
+                const [studentRes, docsRes] = await Promise.all([
+                    fetch(`http://localhost:5000/api/student/${studentId}`),
+                    fetch(`http://localhost:5000/api/student/${studentId}/documents`)
                 ]);
 
-                const patientData = await patientRes.json();
+                const studentData = await studentRes.json();
                 const docsData = await docsRes.json();
 
-                if (!patientData.success) {
-                    Utils.showAlert('Patient not found. Check the QR code and try again.', 'error');
-                    clearPatientInfo();
+                if (!studentData.success) {
+                    Utils.showAlert('Student not found. Check the QR code and try again.', 'error');
+                    clearStudentInfo();
                     return;
                 }
 
-                displayPatientInfo(patientData.patient);
+                currentStudentId = studentId; // Save for document upload
+                displayStudentInfo(studentData.student);
                 displayMedicalRecords(docsData.documents || []);
 
             } catch (err) {
@@ -381,10 +409,10 @@
             }
         }
 
-        // Display patient information
-        function displayPatientInfo(p) {
-            const infoCard = document.getElementById('patientInfoCard');
-            const infoDiv = document.getElementById('patientInfo');
+        // Display student information
+        function displayStudentInfo(p) {
+            const infoCard = document.getElementById('studentInfoCard');
+            const infoDiv = document.getElementById('studentInfo');
 
             infoDiv.innerHTML = `
                 <div class="info-grid">
@@ -395,6 +423,14 @@
                     <div class="info-item">
                         <div class="info-label">Age:</div>
                         <div class="info-value">${p.age} years</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Class:</div>
+                        <div class="info-value">${p.student_class || 'N/A'}${p.section ? ' - ' + p.section : ''}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Roll No:</div>
+                        <div class="info-value">${p.roll_number || 'N/A'}</div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Blood Group:</div>
@@ -413,7 +449,11 @@
                         <div class="info-value">${p.regular_medications || 'None'}</div>
                     </div>
                     <div class="info-item">
-                        <div class="info-label">Emergency Contacts:</div>
+                        <div class="info-label">Parent / Guardian:</div>
+                        <div class="info-value">${p.parent_name || 'Not provided'}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Parent Contact:</div>
                         <div class="info-value">${p.emergency_contacts || 'Not provided'}</div>
                     </div>
                     <div class="info-item">
@@ -424,12 +464,12 @@
             `;
 
             infoCard.classList.remove('hidden');
+            document.getElementById('uploadSection').classList.remove('hidden');
         }
 
         // Display medical records
         function displayMedicalRecords(records) {
             const recordsSection = document.getElementById('medicalRecordsSection');
-            const recordsList = document.getElementById('medicalRecordsList');
 
             if (!records || records.length === 0) {
                 recordsSection.innerHTML = '<p class="text-muted">No medical documents uploaded</p>';
@@ -475,12 +515,71 @@
             }
         }
 
-        // Clear patient info
-        function clearPatientInfo() {
+        // Upload document for currently viewed student
+        async function uploadDocForStudent() {
+            if (!currentStudentId) {
+                Utils.showAlert('No student selected. Please search for a student first.', 'error');
+                return;
+            }
+
+            const fileInput = document.getElementById('docFileInput');
+            const description = document.getElementById('docDescription').value.trim();
+
+            if (!fileInput.files.length) {
+                Utils.showAlert('Please select a file to upload.', 'error');
+                return;
+            }
+
+            const file = fileInput.files[0];
+
+            // Validate file
+            const validation = Utils.validateFile(file);
+            if (!validation.valid) {
+                Utils.showAlert(validation.errors.join(', '), 'error');
+                return;
+            }
+
+            try {
+                const base64 = await Utils.fileToBase64(file);
+
+                const res = await fetch(`http://localhost:5000/api/student/${currentStudentId}/documents`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        filename: file.name,
+                        fileData: base64,
+                        description: description || 'Medical Document'
+                    })
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    Utils.showAlert('Document uploaded successfully!', 'success');
+                    // Clear the form
+                    fileInput.value = '';
+                    document.getElementById('docDescription').value = '';
+                    // Reload documents list
+                    const docsRes = await fetch(`http://localhost:5000/api/student/${currentStudentId}/documents`);
+                    const docsData = await docsRes.json();
+                    displayMedicalRecords(docsData.documents || []);
+                } else {
+                    Utils.showAlert(data.error || 'Upload failed', 'error');
+                }
+            } catch (err) {
+                console.error(err);
+                Utils.showAlert('Server error while uploading document.', 'error');
+            }
+        }
+
+        // Clear student info
+        function clearStudentInfo() {
+            currentStudentId = null;
             document.getElementById('qrInput').value = '';
-            document.getElementById('patientInfoCard').classList.add('hidden');
-            document.getElementById('patientInfo').innerHTML = '';
+            document.getElementById('studentInfoCard').classList.add('hidden');
+            document.getElementById('studentInfo').innerHTML = '';
             document.getElementById('medicalRecordsSection').classList.add('hidden');
+            document.getElementById('uploadSection').classList.add('hidden');
         }
 
         // Logout
@@ -492,7 +591,7 @@
         // Allow Enter key to search
         document.getElementById('qrInput').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
-                lookupPatient();
+                lookupStudent();
             }
         });
     </script>

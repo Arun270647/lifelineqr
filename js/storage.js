@@ -149,23 +149,23 @@ const UserStorage = {
         return Storage.getByField(CONFIG.STORAGE_KEYS.USERS, 'role', CONFIG.ROLES.DOCTOR);
     },
 
-    // Get all patients
-    getAllPatients() {
-        return Storage.getByField(CONFIG.STORAGE_KEYS.USERS, 'role', CONFIG.ROLES.PATIENT);
+    // Get all students
+    getAllStudents() {
+        return Storage.getByField(CONFIG.STORAGE_KEYS.USERS, 'role', CONFIG.ROLES.STUDENT);
     }
 };
 
 // Medical Records Storage
 const MedicalRecordStorage = {
     // Add medical record
-    addRecord(patientId, record) {
-        record.patientId = patientId;
+    addRecord(studentId, record) {
+        record.studentId = studentId;
         return Storage.add(CONFIG.STORAGE_KEYS.MEDICAL_RECORDS, record);
     },
 
-    // Get patient's records
-    getPatientRecords(patientId) {
-        return Storage.getByField(CONFIG.STORAGE_KEYS.MEDICAL_RECORDS, 'patientId', patientId);
+    // Get student's records
+    getStudentRecords(studentId) {
+        return Storage.getByField(CONFIG.STORAGE_KEYS.MEDICAL_RECORDS, 'studentId', studentId);
     },
 
     // Delete record
@@ -177,27 +177,27 @@ const MedicalRecordStorage = {
 // QR Mapping Storage
 const QRStorage = {
     // Create QR mapping
-    createMapping(patientId, qrCode) {
+    createMapping(studentId, qrCode) {
         const mapping = {
-            patientId,
+            studentId,
             qrCode,
             createdAt: new Date().toISOString()
         };
         return Storage.add(CONFIG.STORAGE_KEYS.QR_MAPPINGS, mapping);
     },
 
-    // Get patient by QR code
-    getPatientByQR(qrCode) {
+    // Get student by QR code
+    getStudentByQR(qrCode) {
         const mapping = Storage.findOne(CONFIG.STORAGE_KEYS.QR_MAPPINGS, 'qrCode', qrCode);
         if (mapping) {
-            return UserStorage.getUserById(mapping.patientId);
+            return UserStorage.getUserById(mapping.studentId);
         }
         return null;
     },
 
-    // Get QR by patient ID
-    getQRByPatient(patientId) {
-        return Storage.findOne(CONFIG.STORAGE_KEYS.QR_MAPPINGS, 'patientId', patientId);
+    // Get QR by student ID
+    getQRByStudent(studentId) {
+        return Storage.findOne(CONFIG.STORAGE_KEYS.QR_MAPPINGS, 'studentId', studentId);
     }
 };
 

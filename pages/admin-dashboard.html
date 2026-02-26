@@ -401,6 +401,25 @@
             border-color: rgba(239, 68, 68, 0.4);
         }
 
+        .btn-verify {
+            padding: 6px 14px;
+            border-radius: 8px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            margin-right: 6px;
+        }
+
+        .btn-verify:hover {
+            background: rgba(16, 185, 129, 0.22);
+            border-color: rgba(16, 185, 129, 0.4);
+        }
+
         /* ──────────── EMPTY / LOADING ──────────── */
         .empty-state {
             text-align: center;
@@ -497,8 +516,8 @@
         <div class="stats-grid">
             <div class="stat-card blue">
                 <div class="stat-icon">🏥</div>
-                <div class="stat-value" id="statPatients">—</div>
-                <div class="stat-label">Total Patients</div>
+                <div class="stat-value" id="statStudents">—</div>
+                <div class="stat-label">Total Students</div>
             </div>
             <div class="stat-card green">
                 <div class="stat-icon">👨‍⚕️</div>
@@ -513,32 +532,37 @@
             <div class="stat-card cyan">
                 <div class="stat-icon">🆕</div>
                 <div class="stat-value" id="statToday">—</div>
-                <div class="stat-label">New Patients Today</div>
+                <div class="stat-label">New Students Today</div>
+            </div>
+            <div class="stat-card amber">
+                <div class="stat-icon">⏳</div>
+                <div class="stat-value" id="statPending">—</div>
+                <div class="stat-label">Pending Doctors</div>
             </div>
         </div>
 
         <!-- Tabs -->
         <div class="tabs">
-            <button class="tab active" id="tabPatients" onclick="switchTab('patients')">🏥 Patients</button>
+            <button class="tab active" id="tabStudents" onclick="switchTab('students')">🏥 Students</button>
             <button class="tab" id="tabDoctors" onclick="switchTab('doctors')">👨‍⚕️ Doctors</button>
         </div>
 
-        <!-- ── PATIENTS PANEL ── -->
-        <div class="panel active" id="panelPatients">
+        <!-- ── STUDENTS PANEL ── -->
+        <div class="panel active" id="panelStudents">
             <div class="controls">
                 <div class="search-box">
                     <span class="search-icon">🔍</span>
-                    <input type="text" id="patientSearch" placeholder="Search by name, email, blood group…"
-                        oninput="filterTable('patient')">
+                    <input type="text" id="studentSearch" placeholder="Search by name, email, blood group…"
+                        oninput="filterTable('student')">
                 </div>
-                <div class="count-badge">Showing <span id="patientCount">0</span> patients</div>
+                <div class="count-badge">Showing <span id="studentCount">0</span> students</div>
             </div>
             <div class="table-wrap">
-                <table id="patientTable">
+                <table id="studentTable">
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Patient</th>
+                            <th>Student</th>
                             <th>Age</th>
                             <th>Blood</th>
                             <th>Allergies</th>
@@ -549,11 +573,11 @@
                             <th>Action</th>
                         </tr>
                     </thead>
-                    <tbody id="patientBody">
+                    <tbody id="studentBody">
                         <tr>
                             <td colspan="10">
                                 <div class="empty-state">
-                                    <div>⏳</div>Loading patients…
+                                    <div>⏳</div>Loading students…
                                 </div>
                             </td>
                         </tr>
@@ -618,12 +642,12 @@
         }
 
         // ── Raw data storage ────────────────────────────────────────────────
-        let allPatients = [];
+        let allStudents = [];
         let allDoctors = [];
 
         // ── Init ──────────────────────────────────────────────────────────
         async function init() {
-            await Promise.all([loadStats(), loadPatients(), loadDoctors()]);
+            await Promise.all([loadStats(), loadStudents(), loadDoctors()]);
         }
 
         // ── Stats ─────────────────────────────────────────────────────────
@@ -633,10 +657,11 @@
                 const data = await res.json();
                 if (data.success) {
                     const s = data.stats;
-                    animateCount('statPatients', s.total_patients);
+                    animateCount('statStudents', s.total_students);
                     animateCount('statDoctors', s.total_doctors);
                     animateCount('statDocs', s.total_documents);
                     animateCount('statToday', s.new_today);
+                    animateCount('statPending', s.pending_doctors);
                 }
             } catch (e) { console.error(e); }
         }
@@ -652,24 +677,24 @@
             }, 30);
         }
 
-        // ── Patients ──────────────────────────────────────────────────────
-        async function loadPatients() {
+        // ── Students ──────────────────────────────────────────────────────
+        async function loadStudents() {
             try {
-                const res = await fetch(`${API}/api/admin/patients`);
+                const res = await fetch(`${API}/api/admin/students`);
                 const data = await res.json();
-                allPatients = data.patients || [];
-                renderPatients(allPatients);
+                allStudents = data.students || [];
+                renderStudents(allStudents);
             } catch (e) {
-                document.getElementById('patientBody').innerHTML =
+                document.getElementById('studentBody').innerHTML =
                     `<tr><td colspan="10"><div class="empty-state"><div>⚠️</div>Failed to load. Is the backend running?</div></td></tr>`;
             }
         }
 
-        function renderPatients(list) {
-            const tbody = document.getElementById('patientBody');
-            document.getElementById('patientCount').textContent = list.length;
+        function renderStudents(list) {
+            const tbody = document.getElementById('studentBody');
+            document.getElementById('studentCount').textContent = list.length;
             if (!list.length) {
-                tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state"><div>🏥</div>No patients registered yet</div></td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state"><div>🏥</div>No students registered yet</div></td></tr>`;
                 return;
             }
             tbody.innerHTML = list.map(p => `
@@ -686,21 +711,21 @@
                     <td style="font-size:12px;">${esc(p.emergency_contacts) || '—'}</td>
                     <td><span class="badge badge-docs">📄 ${p.doc_count}</span></td>
                     <td style="font-size:12px; color:var(--muted);">${formatDate(p.created_at)}</td>
-                    <td><button class="btn-delete" onclick="deletePatient(${p.id}, '${esc(p.name)}')">🗑 Delete</button></td>
+                    <td><button class="btn-delete" onclick="deleteStudent(${p.id}, '${esc(p.name)}')">🗑 Delete</button></td>
                 </tr>
             `).join('');
         }
 
-        async function deletePatient(id, name) {
-            if (!confirm(`Delete patient "${name}"?\n\nThis will also delete all their medical documents.`)) return;
+        async function deleteStudent(id, name) {
+            if (!confirm(`Delete student "${name}"?\n\nThis will also delete all their medical documents.`)) return;
             try {
-                const res = await fetch(`${API}/api/admin/patient/${id}`, { method: 'DELETE' });
+                const res = await fetch(`${API}/api/admin/student/${id}`, { method: 'DELETE' });
                 const data = await res.json();
                 if (data.success) {
-                    allPatients = allPatients.filter(p => p.id !== id);
-                    renderPatients(getFilteredList('patient'));
+                    allStudents = allStudents.filter(p => p.id !== id);
+                    renderStudents(getFilteredList('student'));
                     loadStats();
-                    toast('Patient deleted successfully', 'success');
+                    toast('Student deleted successfully', 'success');
                 } else { toast(data.error || 'Delete failed', 'error'); }
             } catch (e) { toast('Server error', 'error'); }
         }
@@ -739,7 +764,10 @@
                     <td style="font-size:12px;">${esc(d.contact_number) || '—'}</td>
                     <td style="font-size:12px; color:var(--muted);">${esc(d.working_hours) || '—'}</td>
                     <td style="font-size:12px; color:var(--muted);">${formatDate(d.created_at)}</td>
-                    <td><button class="btn-delete" onclick="deleteDoctor(${d.id}, '${esc(d.name)}')">🗑 Delete</button></td>
+                    <td style="display:flex; gap:6px; align-items:center;">
+                        ${d.is_verified ? '<span class="badge badge-spec">Verified</span>' : `<button class="btn-verify" onclick="verifyDoctor(${d.id}, '${esc(d.name)}')">Verify Pending</button>`}
+                        <button class="btn-delete" onclick="deleteDoctor(${d.id}, '${esc(d.name)}')">Delete</button>
+                    </td>
                 </tr>
             `).join('');
         }
@@ -758,14 +786,29 @@
             } catch (e) { toast('Server error', 'error'); }
         }
 
+        async function verifyDoctor(id, name) {
+            if (!confirm(`Approve verification for doctor "${name}"?`)) return;
+            try {
+                const res = await fetch(`${API}/api/admin/doctor/${id}/verify`, { method: 'PUT' });
+                const data = await res.json();
+                if (data.success) {
+                    const doc = allDoctors.find(d => d.id === id);
+                    if (doc) doc.is_verified = true;
+                    renderDoctors(getFilteredList('doctor'));
+                    loadStats();
+                    toast('Doctor verified successfully', 'success');
+                } else { toast(data.error || 'Verification failed', 'error'); }
+            } catch (e) { toast('Server error', 'error'); }
+        }
+
         // ── Search / filter ───────────────────────────────────────────────
         function getFilteredList(type) {
-            if (type === 'patient') {
-                const q = document.getElementById('patientSearch').value.toLowerCase();
-                return q ? allPatients.filter(p =>
+            if (type === 'student') {
+                const q = document.getElementById('studentSearch').value.toLowerCase();
+                return q ? allStudents.filter(p =>
                     [p.name, p.email, p.blood_group, p.allergies, p.medical_conditions]
                         .some(v => (v || '').toLowerCase().includes(q))
-                ) : allPatients;
+                ) : allStudents;
             } else {
                 const q = document.getElementById('doctorSearch').value.toLowerCase();
                 return q ? allDoctors.filter(d =>
@@ -776,7 +819,7 @@
         }
 
         function filterTable(type) {
-            if (type === 'patient') renderPatients(getFilteredList('patient'));
+            if (type === 'student') renderStudents(getFilteredList('student'));
             else renderDoctors(getFilteredList('doctor'));
         }
 

@@ -1,5 +1,5 @@
 -- LifelineQR Database Migration (MySQL 9.3 compatible)
--- Drops the 'users' table and creates separate 'doctors' and 'patients' tables
+-- Drops the 'users' table and creates separate 'doctors' and 'students' tables
 
 USE lifeline_qr;
 
@@ -8,14 +8,14 @@ SET FOREIGN_KEY_CHECKS = 0;
 
 -- Drop old tables and any partially‑created tables from previous runs
 DROP TABLE IF EXISTS users;
-DROP TABLE IF EXISTS patients;
+DROP TABLE IF EXISTS students;
 DROP TABLE IF EXISTS doctors;
 
 -- Re-enable foreign key checks
 SET FOREIGN_KEY_CHECKS = 1;
 
--- Create patients table
-CREATE TABLE patients (
+-- Create students table
+CREATE TABLE students (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     age INT NOT NULL,

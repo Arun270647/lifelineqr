@@ -8,22 +8,22 @@ switch ($method) {
         // Upload medical record (metadata only - files stored separately)
         $data = json_decode(file_get_contents('php://input'), true);
         
-        if (!isset($data['patientId']) || !isset($data['filename'])) {
-            echo json_encode(['success' => false, 'error' => 'Patient ID and filename required']);
+        if (!isset($data['studentId']) || !isset($data['filename'])) {
+            echo json_encode(['success' => false, 'error' => 'Student ID and filename required']);
             exit();
         }
         
         $id = generateUUID();
-        $patientId = sanitize($conn, $data['patientId']);
+        $studentId = sanitize($conn, $data['studentId']);
         $filename = sanitize($conn, $data['filename']);
         $fileType = sanitize($conn, $data['fileType'] ?? '');
         $filePath = sanitize($conn, $data['filePath'] ?? ''); // Store file path or data
         $description = sanitize($conn, $data['description'] ?? '');
         
-        $sql = "INSERT INTO medical_records (id, patient_id, filename, file_type, file_path, description) 
+        $sql = "INSERT INTO medical_records (id, student_id, filename, file_type, file_path, description) 
                 VALUES (?, ?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param('ssssss', $id, $patientId, $filename, $fileType, $filePath, $description);
+        $stmt->bind_param('ssssss', $id, $studentId, $filename, $fileType, $filePath, $description);
         
         if ($stmt->execute()) {
             echo json_encode([
@@ -40,13 +40,13 @@ switch ($method) {
         break;
         
     case 'GET':
-        // Get records by patient ID
-        if (isset($_GET['patientId'])) {
-            $patientId = sanitize($conn, $_GET['patientId']);
+        // Get records by student ID
+        if (isset($_GET['studentId'])) {
+            $studentId = sanitize($conn, $_GET['studentId']);
             
-            $sql = "SELECT * FROM medical_records WHERE patient_id = ? ORDER BY created_at DESC";
+            $sql = "SELECT * FROM medical_records WHERE student_id = ? ORDER BY created_at DESC";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param('s', $patientId);
+            $stmt->bind_param('s', $studentId);
             $stmt->execute();
             $result = $stmt->get_result();
             
@@ -57,7 +57,7 @@ switch ($method) {
             
             echo json_encode(['success' => true, 'records' => $records]);
         } else {
-            echo json_encode(['success' => false, 'error' => 'Patient ID required']);
+            echo json_encode(['success' => false, 'error' => 'Student ID required']);
         }
         break;
         

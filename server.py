@@ -1,6 +1,6 @@
 """
 LifelineQR - Python Flask Backend
-Handles doctor and patient registration via REST API,
+Handles doctor and student registration via REST API,
 stores data in MySQL 'lifelineqr' database.
 """
 
@@ -67,9 +67,9 @@ if _detected_password is None:
             # verify immediately
             _test = mysql.connector.connect(host=_MYSQL_HOST, user=_MYSQL_USER, password=_detected_password)
             _test.close()
-            print("  ✓ Connected successfully!")
+            print("  [OK] Connected successfully!")
         except Exception as e:
-            print(f"  ✗ Connection testing failed: {e}")
+            print(f"  [ERR] Connection testing failed: {e}")
             _detected_password = ''  # fallback – will fail later
 
 DB_CONFIG = {
@@ -99,7 +99,7 @@ def _bootstrap_database():
         cursor = conn.cursor()
 
         cursor.execute("""
-            CREATE TABLE IF NOT EXISTS patients (
+            CREATE TABLE IF NOT EXISTS students (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 name VARCHAR(255) NOT NULL,
                 age INT NOT NULL,
@@ -111,9 +111,25 @@ def _bootstrap_database():
                 regular_medications TEXT,
                 address TEXT,
                 emergency_contacts VARCHAR(20),
+                student_class VARCHAR(10),
+                section VARCHAR(5),
+                roll_number VARCHAR(20),
+                parent_name VARCHAR(255),
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         """)
+
+        # Safely add new columns if they don't exist (for existing databases)
+        for col, coldef in [
+            ('student_class', 'VARCHAR(10)'),
+            ('section', 'VARCHAR(5)'),
+            ('roll_number', 'VARCHAR(20)'),
+            ('parent_name', 'VARCHAR(255)'),
+        ]:
+            try:
+                cursor.execute(f"ALTER TABLE students ADD COLUMN {col} {coldef}")
+            except mysql.connector.Error:
+                pass  # column already exists
 
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS doctors (
@@ -127,19 +143,28 @@ def _bootstrap_database():
                 hospital VARCHAR(255),
                 contact_number VARCHAR(20),
                 working_hours VARCHAR(50),
+                is_verified BOOLEAN DEFAULT FALSE,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         """)
 
+        for col, coldef in [
+            ('is_verified', 'BOOLEAN DEFAULT FALSE')
+        ]:
+            try:
+                cursor.execute(f"ALTER TABLE doctors ADD COLUMN {col} {coldef}")
+            except mysql.connector.Error:
+                pass  # column already exists
+
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS medical_documents (
                 id INT AUTO_INCREMENT PRIMARY KEY,
-                patient_id INT NOT NULL,
+                student_id INT NOT NULL,
                 filename VARCHAR(255) NOT NULL,
                 file_data LONGTEXT NOT NULL,
                 description TEXT,
                 uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE
+                FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
             )
         """)
 
@@ -161,19 +186,19 @@ def _bootstrap_database():
         conn.commit()
         cursor.close()
         conn.close()
-        print("  ✓ Database and tables verified / created")
+        print("  [OK] Database and tables verified / created")
     except mysql.connector.Error as err:
-        print(f"  ✗ Database bootstrap error: {err}")
+        print(f"  [ERR] Database bootstrap error: {err}")
 
 
 _bootstrap_database()
 
 
-# ── Patient endpoints ────────────────────────────────────────────────────────
+# ── Student endpoints ────────────────────────────────────────────────────────
 
-@app.route('/api/register/patient', methods=['POST'])
-def register_patient():
-    """Register a new patient."""
+@app.route('/api/register/student', methods=['POST'])
+def register_student():
+    """Register a new student."""
     data = request.get_json()
 
     required = ['name', 'age', 'email', 'password']
@@ -186,16 +211,17 @@ def register_patient():
         cursor = conn.cursor()
 
         # Check if email already exists
-        cursor.execute('SELECT id FROM patients WHERE email = %s', (data['email'],))
+        cursor.execute('SELECT id FROM students WHERE email = %s', (data['email'],))
         if cursor.fetchone():
             return jsonify({'success': False, 'error': 'Email already registered'}), 409
 
         hashed_pw = data['password']
 
-        sql = '''INSERT INTO patients
+        sql = '''INSERT INTO students
                  (name, age, email, password, blood_group, allergies,
-                  medical_conditions, regular_medications, address, emergency_contacts)
-                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'''
+                  medical_conditions, regular_medications, address, emergency_contacts,
+                  student_class, section, roll_number, parent_name)
+                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'''
 
         values = (
             data['name'],
@@ -207,86 +233,92 @@ def register_patient():
             data.get('medicalConditions', ''),
             data.get('regularMedications', ''),
             data.get('address', ''),
-            data.get('emergencyContacts', '')
+            data.get('emergencyContacts', ''),
+            data.get('studentClass', ''),
+            data.get('section', ''),
+            data.get('rollNumber', ''),
+            data.get('parentName', '')
         )
 
         cursor.execute(sql, values)
         conn.commit()
 
-        patient_id = cursor.lastrowid
+        student_id = cursor.lastrowid
         cursor.close()
         conn.close()
 
         return jsonify({
             'success': True,
-            'message': 'Patient registered successfully',
-            'patient_id': patient_id
+            'message': 'Student registered successfully',
+            'student_id': student_id
         }), 201
 
     except mysql.connector.Error as err:
         return jsonify({'success': False, 'error': str(err)}), 500
 
 
-@app.route('/api/patients', methods=['GET'])
-def get_patients():
-    """Get all patients."""
+@app.route('/api/students', methods=['GET'])
+def get_students():
+    """Get all students."""
     try:
         conn = get_db()
         cursor = conn.cursor(dictionary=True)
         cursor.execute('SELECT id, name, age, email, blood_group, allergies, '
                        'medical_conditions, regular_medications, address, '
-                       'emergency_contacts, created_at FROM patients')
-        patients = cursor.fetchall()
+                       'emergency_contacts, student_class, section, roll_number, '
+                       'parent_name, created_at FROM students')
+        students = cursor.fetchall()
 
         # Convert datetime objects to strings
-        for p in patients:
+        for p in students:
             if p.get('created_at'):
                 p['created_at'] = p['created_at'].isoformat()
 
         cursor.close()
         conn.close()
-        return jsonify({'success': True, 'patients': patients})
+        return jsonify({'success': True, 'students': students})
 
     except mysql.connector.Error as err:
         return jsonify({'success': False, 'error': str(err)}), 500
 
 
-@app.route('/api/patient/<int:patient_id>', methods=['GET'])
-def get_patient(patient_id):
-    """Get a single patient by ID."""
+@app.route('/api/student/<int:student_id>', methods=['GET'])
+def get_student(student_id):
+    """Get a single student by ID."""
     try:
         conn = get_db()
         cursor = conn.cursor(dictionary=True)
         cursor.execute('SELECT id, name, age, email, blood_group, allergies, '
                        'medical_conditions, regular_medications, address, '
-                       'emergency_contacts, created_at FROM patients WHERE id = %s',
-                       (patient_id,))
-        patient = cursor.fetchone()
+                       'emergency_contacts, student_class, section, roll_number, '
+                       'parent_name, created_at FROM students WHERE id = %s',
+                       (student_id,))
+        student = cursor.fetchone()
         cursor.close()
         conn.close()
 
-        if not patient:
-            return jsonify({'success': False, 'error': 'Patient not found'}), 404
+        if not student:
+            return jsonify({'success': False, 'error': 'Student not found'}), 404
 
-        if patient.get('created_at'):
-            patient['created_at'] = patient['created_at'].isoformat()
+        if student.get('created_at'):
+            student['created_at'] = student['created_at'].isoformat()
 
-        return jsonify({'success': True, 'patient': patient})
+        return jsonify({'success': True, 'student': student})
 
     except mysql.connector.Error as err:
         return jsonify({'success': False, 'error': str(err)}), 500
 
 
-@app.route('/api/patient/<int:patient_id>', methods=['PUT'])
-def update_patient(patient_id):
-    """Update a patient's profile."""
+@app.route('/api/student/<int:student_id>', methods=['PUT'])
+def update_student(student_id):
+    """Update a student's profile."""
     data = request.get_json()
 
     try:
         conn = get_db()
         cursor = conn.cursor()
 
-        sql = '''UPDATE patients SET
+        sql = '''UPDATE students SET
                  allergies = %s,
                  medical_conditions = %s,
                  regular_medications = %s,
@@ -300,7 +332,7 @@ def update_patient(patient_id):
             data.get('regular_medications', ''),
             data.get('address', ''),
             data.get('emergency_contacts', ''),
-            patient_id
+            student_id
         )
 
         cursor.execute(sql, values)
@@ -339,8 +371,8 @@ def register_doctor():
 
         sql = '''INSERT INTO doctors
                  (name, age, email, password, specialization, experience,
-                  hospital, contact_number, working_hours)
-                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)'''
+                  hospital, contact_number, working_hours, is_verified)
+                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, FALSE)'''
 
         values = (
             data['name'],
@@ -378,7 +410,7 @@ def get_doctors():
         conn = get_db()
         cursor = conn.cursor(dictionary=True)
         cursor.execute('SELECT id, name, age, email, specialization, experience, '
-                       'hospital, contact_number, working_hours, created_at FROM doctors')
+                       'hospital, contact_number, working_hours, is_verified, created_at FROM doctors')
         doctors = cursor.fetchall()
 
         for d in doctors:
@@ -397,7 +429,7 @@ def get_doctors():
 
 @app.route('/api/login', methods=['POST'])
 def login():
-    """Login for both doctors and patients."""
+    """Login for both doctors and students."""
     data = request.get_json()
 
     email = data.get('email', '').lower()
@@ -411,7 +443,7 @@ def login():
         conn = get_db()
         cursor = conn.cursor(dictionary=True)
 
-        table = 'doctors' if role == 'doctor' else 'patients'
+        table = 'doctors' if role == 'doctor' else 'students'
         cursor.execute(f'SELECT * FROM {table} WHERE email = %s', (email,))
         user = cursor.fetchone()
 
@@ -439,9 +471,9 @@ def login():
 
 # ── Medical Documents endpoints ──────────────────────────────────────────────
 
-@app.route('/api/patient/<int:patient_id>/documents', methods=['POST'])
-def upload_document(patient_id):
-    """Upload a medical document for a patient."""
+@app.route('/api/student/<int:student_id>/documents', methods=['POST'])
+def upload_document(student_id):
+    """Upload a medical document for a student."""
     data = request.get_json()
 
     filename = data.get('filename', '')
@@ -456,10 +488,10 @@ def upload_document(patient_id):
         cursor = conn.cursor()
 
         sql = '''INSERT INTO medical_documents
-                 (patient_id, filename, file_data, description)
+                 (student_id, filename, file_data, description)
                  VALUES (%s, %s, %s, %s)'''
 
-        cursor.execute(sql, (patient_id, filename, file_data, description))
+        cursor.execute(sql, (student_id, filename, file_data, description))
         conn.commit()
 
         doc_id = cursor.lastrowid
@@ -476,14 +508,14 @@ def upload_document(patient_id):
         return jsonify({'success': False, 'error': str(err)}), 500
 
 
-@app.route('/api/patient/<int:patient_id>/documents', methods=['GET'])
-def get_documents(patient_id):
-    """Get all medical documents for a patient."""
+@app.route('/api/student/<int:student_id>/documents', methods=['GET'])
+def get_documents(student_id):
+    """Get all medical documents for a student."""
     try:
         conn = get_db()
         cursor = conn.cursor(dictionary=True)
         cursor.execute('SELECT id, filename, description, uploaded_at FROM medical_documents '
-                       'WHERE patient_id = %s ORDER BY uploaded_at DESC', (patient_id,))
+                       'WHERE student_id = %s ORDER BY uploaded_at DESC', (student_id,))
         docs = cursor.fetchall()
 
         for d in docs:
@@ -569,42 +601,46 @@ def admin_stats():
     try:
         conn = get_db()
         cursor = conn.cursor()
-        cursor.execute('SELECT COUNT(*) FROM patients')
-        total_patients = cursor.fetchone()[0]
+        cursor.execute('SELECT COUNT(*) FROM students')
+        total_students = cursor.fetchone()[0]
         cursor.execute('SELECT COUNT(*) FROM doctors')
         total_doctors = cursor.fetchone()[0]
         cursor.execute('SELECT COUNT(*) FROM medical_documents')
         total_docs = cursor.fetchone()[0]
-        cursor.execute("SELECT COUNT(*) FROM patients WHERE DATE(created_at) = CURDATE()")
+        cursor.execute("SELECT COUNT(*) FROM students WHERE DATE(created_at) = CURDATE()")
         new_today = cursor.fetchone()[0]
+        cursor.execute('SELECT COUNT(*) FROM doctors WHERE is_verified = FALSE')
+        pending_doctors = cursor.fetchone()[0]
         cursor.close()
         conn.close()
         return jsonify({
             'success': True,
             'stats': {
-                'total_patients': total_patients,
+                'total_students': total_students,
                 'total_doctors': total_doctors,
                 'total_documents': total_docs,
-                'new_today': new_today
+                'new_today': new_today,
+                'pending_doctors': pending_doctors
             }
         })
     except mysql.connector.Error as err:
         return jsonify({'success': False, 'error': str(err)}), 500
 
 
-@app.route('/api/admin/patients', methods=['GET'])
-def admin_get_patients():
-    """Full patient list for admin (excludes passwords)."""
+@app.route('/api/admin/students', methods=['GET'])
+def admin_get_students():
+    """Full student list for admin (excludes passwords)."""
     try:
         conn = get_db()
         cursor = conn.cursor(dictionary=True)
         cursor.execute("""
             SELECT p.id, p.name, p.age, p.email, p.blood_group,
                    p.allergies, p.medical_conditions, p.regular_medications,
-                   p.address, p.emergency_contacts, p.created_at,
+                   p.address, p.emergency_contacts, p.student_class, p.section,
+                   p.roll_number, p.parent_name, p.created_at,
                    COUNT(d.id) AS doc_count
-            FROM patients p
-            LEFT JOIN medical_documents d ON d.patient_id = p.id
+            FROM students p
+            LEFT JOIN medical_documents d ON d.student_id = p.id
             GROUP BY p.id
             ORDER BY p.created_at DESC
         """)
@@ -614,7 +650,7 @@ def admin_get_patients():
         for r in rows:
             if r.get('created_at'):
                 r['created_at'] = r['created_at'].isoformat()
-        return jsonify({'success': True, 'patients': rows})
+        return jsonify({'success': True, 'students': rows})
     except mysql.connector.Error as err:
         return jsonify({'success': False, 'error': str(err)}), 500
 
@@ -627,7 +663,7 @@ def admin_get_doctors():
         cursor = conn.cursor(dictionary=True)
         cursor.execute("""
             SELECT id, name, age, email, specialization, experience,
-                   hospital, contact_number, working_hours, created_at
+                   hospital, contact_number, working_hours, is_verified, created_at
             FROM doctors
             ORDER BY created_at DESC
         """)
@@ -642,17 +678,17 @@ def admin_get_doctors():
         return jsonify({'success': False, 'error': str(err)}), 500
 
 
-@app.route('/api/admin/patient/<int:patient_id>', methods=['DELETE'])
-def admin_delete_patient(patient_id):
-    """Delete a patient (and cascade their documents)."""
+@app.route('/api/admin/student/<int:student_id>', methods=['DELETE'])
+def admin_delete_student(student_id):
+    """Delete a student (and cascade their documents)."""
     try:
         conn = get_db()
         cursor = conn.cursor()
-        cursor.execute('DELETE FROM patients WHERE id = %s', (patient_id,))
+        cursor.execute('DELETE FROM students WHERE id = %s', (student_id,))
         conn.commit()
         cursor.close()
         conn.close()
-        return jsonify({'success': True, 'message': 'Patient deleted'})
+        return jsonify({'success': True, 'message': 'Student deleted'})
     except mysql.connector.Error as err:
         return jsonify({'success': False, 'error': str(err)}), 500
 
@@ -670,6 +706,23 @@ def admin_delete_doctor(doctor_id):
         return jsonify({'success': True, 'message': 'Doctor deleted'})
     except mysql.connector.Error as err:
         return jsonify({'success': False, 'error': str(err)}), 500
+
+
+@app.route('/api/admin/doctor/<int:doctor_id>/verify', methods=['PUT'])
+def admin_verify_doctor(doctor_id):
+    """Verify a doctor."""
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute('UPDATE doctors SET is_verified = TRUE WHERE id = %s', (doctor_id,))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return jsonify({'success': True, 'message': 'Doctor verified'})
+    except mysql.connector.Error as err:
+        return jsonify({'success': False, 'error': str(err)}), 500
+
+
 
 
 # ── Run ──────────────────────────────────────────────────────────────────────

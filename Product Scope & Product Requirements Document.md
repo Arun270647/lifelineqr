@@ -10,8 +10,8 @@ Prepared By: Track My Academy – Dev Ops
 **1.** **Project** **Overview**
 
 LifeLine QR is a small-scale medical information web project designed to
-provide instant access to a patient’s critical health details during
-emergencies using a QR code. The platform connects patients and doctors
+provide instant access to a student’s critical health details during
+emergencies using a QR code. The platform connects students and doctors
 through a simple login system and also includes a basic merchandise
 module for QR cards.
 
@@ -21,13 +21,13 @@ implemented strictly using HTML, CSS, and Vanilla JavaScript only.
 **2.** **Problem** **Statement**
 
 In emergency situations, first responders or doctors may not know a
-patient’s: - Blood group
+student’s: - Blood group
 
 \- Allergies
 
 \- Existing medical conditions - Emergency contact details
 
-Patients also struggle to carry medical documents everywhere. LifeLine
+Students also struggle to carry medical documents everywhere. LifeLine
 QR solves this by storing essential medical data online and linking it
 to a QR code that can be scanned instantly.
 
@@ -35,10 +35,10 @@ to a QR code that can be scanned instantly.
 
 **<u>Included Features</u>**
 
-> ● Patient and Doctor registration & login ● Patient medical profile
+> ● Student and Doctor registration & login ● Student medical profile
 > creation
 >
-> ● QR code generation for patients
+> ● QR code generation for students
 >
 > ● Emergency-only information display for public users ● Full medical
 > view for logged-in doctors
@@ -66,7 +66,7 @@ to a QR code that can be scanned instantly.
 
 **5.** **User** **Roles**
 
-**<u>5.1 Patient</u>**
+**<u>5.1 Student</u>**
 
 > ● Register and login
 >
@@ -80,7 +80,7 @@ to a QR code that can be scanned instantly.
 
 > ● Register and login
 >
-> ● View patient information after QR scan ● Access uploaded medical
+> ● View student information after QR scan ● Access uploaded medical
 > documents
 >
 > ● Read-only access
@@ -93,9 +93,9 @@ to a QR code that can be scanned instantly.
 
 > 1.User visits the website
 >
-> 2.Chooses Doctor or Patient registration
+> 2.Chooses Doctor or Student registration
 >
-> 3.Patient completes registration and receives QR code 4.QR can be
+> 3.Student completes registration and receives QR code 4.QR can be
 > printed on a card
 >
 > 5.When QR is scanned:
@@ -120,7 +120,7 @@ Centered Login & Sign Up buttons - “Upload Medical Records” button
 (redirects to login if not authenticated)
 
 **<u>Page 2: Role Selection Page</u>** **Button:** Register as Doctor
-**Button:** Register as Patient
+**Button:** Register as Student
 
 **<u>Page 3: Doctor Registration Page</u>** **Form** **Fields:**
 
@@ -138,7 +138,7 @@ Centered Login & Sign Up buttons - “Upload Medical Records” button
 
 **Logic:** - Temporary password generation (simulated)
 
-**<u>Page 4: Patient Registration Page</u>** **Form** **Fields:**
+**<u>Page 4: Student Registration Page</u>** **Form** **Fields:**
 
 \- Name - Age
 
@@ -150,7 +150,7 @@ Centered Login & Sign Up buttons - “Upload Medical Records” button
 
 **On** **Submit:**
 
-\- Save patient details
+\- Save student details
 
 \- Generate unique QR code - Redirect to login page
 
@@ -160,10 +160,10 @@ Centered Login & Sign Up buttons - “Upload Medical Records” button
 
 \- Password
 
-**Redirection:** - Patient → Patient Dashboard - Doctor → Doctor
+**Redirection:** - Student → Student Dashboard - Doctor → Doctor
 Dashboard
 
-**<u>Page 6: Patient Dashboard</u>** **Features:**
+**<u>Page 6: Student Dashboard</u>** **Features:**
 
 \- View & edit personal information - Upload medical documents
 
@@ -173,7 +173,7 @@ Dashboard
 
 **<u>Page 7: Doctor Dashboard</u>** **Features:**
 
-\- Enter / scan patient QR code ID - View patient details
+\- Enter / scan student QR code ID - View student details
 
 \- Access uploaded medical records
 
@@ -199,18 +199,18 @@ Reset password (simulated)
 
 Contact number Feedback form
 
-**8.** **QR** **Code** **Access** **Logic** One QR code per patient
+**8.** **QR** **Code** **Access** **Logic** One QR code per student
 
-QR redirects to patient profile page **Access** **Rules:**
+QR redirects to student profile page **Access** **Rules:**
 
 \- Logged-in Doctor → Full medical data - Guest user → Emergency-only
 details: - Name - Blood group - Allergies - Emergency contact
 
 **9.** **Data** **Storage** **Design**
 
-> 1\. Users (patients and doctors) 2. Medical records
+> 1\. Users (students and doctors) 2. Medical records
 >
-> 3\. QR-to-patient mapping 4. Orders (merchandise)
+> 3\. QR-to-student mapping 4. Orders (merchandise)
 >
 > 5\. (All stored using LocalStorage / IndexedDB)
 

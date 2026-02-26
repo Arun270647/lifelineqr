@@ -6,16 +6,16 @@ CREATE DATABASE IF NOT EXISTS lifeline_qr;
 USE lifeline_qr;
 
 -- Table: users
--- Stores both patient and doctor accounts
+-- Stores both student and doctor accounts
 CREATE TABLE IF NOT EXISTS users (
     id VARCHAR(36) PRIMARY KEY,
-    role ENUM('patient', 'doctor') NOT NULL,
+    role ENUM('student', 'doctor') NOT NULL,
     name VARCHAR(255) NOT NULL,
     age INT NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
     
-    -- Patient fields
+    -- Student fields
     blood_group VARCHAR(5) DEFAULT NULL,
     allergies TEXT DEFAULT NULL,
     medical_conditions TEXT DEFAULT NULL,
@@ -38,31 +38,31 @@ CREATE TABLE IF NOT EXISTS users (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Table: qr_mappings
--- Maps QR codes to patient IDs
+-- Maps QR codes to student IDs
 CREATE TABLE IF NOT EXISTS qr_mappings (
     id VARCHAR(36) PRIMARY KEY,
-    patient_id VARCHAR(36) NOT NULL,
+    student_id VARCHAR(36) NOT NULL,
     qr_code VARCHAR(36) UNIQUE NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     
-    FOREIGN KEY (patient_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE,
     INDEX idx_qr_code (qr_code),
-    INDEX idx_patient_id (patient_id)
+    INDEX idx_student_id (student_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Table: medical_records
 -- Stores uploaded medical documents metadata
 CREATE TABLE IF NOT EXISTS medical_records (
     id VARCHAR(36) PRIMARY KEY,
-    patient_id VARCHAR(36) NOT NULL,
+    student_id VARCHAR(36) NOT NULL,
     filename VARCHAR(255) NOT NULL,
     file_type VARCHAR(50) NOT NULL,
     file_path VARCHAR(500) NOT NULL,
     description TEXT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     
-    FOREIGN KEY (patient_id) REFERENCES users(id) ON DELETE CASCADE,
-    INDEX idx_patient_id (patient_id)
+    FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_student_id (student_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Table: orders
