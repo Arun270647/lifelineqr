@@ -308,7 +308,7 @@
         const currentUser = JSON.parse(sessionStorage.getItem(CONFIG.STORAGE_KEYS.CURRENT_USER));
 
         if (!currentUser || currentUser.role !== 'doctor') {
-            window.location.href = '/pages/login.html';
+            window.location.href = './login.html';
         }
 
         if (!currentUser.is_verified) {
@@ -585,7 +585,7 @@
         // Logout
         function handleLogout() {
             sessionStorage.removeItem(CONFIG.STORAGE_KEYS.CURRENT_USER);
-            window.location.href = '/pages/login.html';
+            window.location.href = './login.html';
         }
 
         // Allow Enter key to search

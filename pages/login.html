@@ -100,7 +100,7 @@
                     // Save admin session and go to admin dashboard
                     sessionStorage.setItem('admin_session', JSON.stringify(adminData.admin));
                     Utils.showAlert('Welcome, Admin! Redirecting to control panel…', 'success');
-                    setTimeout(() => { window.location.href = '/pages/admin-dashboard.html'; }, 900);
+                    setTimeout(() => { window.location.href = './admin-dashboard.html'; }, 900);
                     return;
                 }
 
@@ -123,8 +123,8 @@
                     Utils.showAlert('Login successful! Redirecting...', 'success');
                     setTimeout(() => {
                         window.location.href = role === 'student'
-                            ? '/pages/student-dashboard.html'
-                            : '/pages/doctor-dashboard.html';
+                            ? './student-dashboard.html'
+                            : './doctor-dashboard.html';
                     }, 1000);
                 } else {
                     Utils.showAlert('Invalid email or password', 'error');
